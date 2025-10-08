@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<title>MeetHive</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link rel="stylesheet" href="css/group.css">
+</head>
+<body class="bg-background-light font-display text-black">
+<div class="flex h-screen flex-col">
+<header class="flex h-16 shrink-0 items-center justify-between border-b border-black/10 px-6">
+  <div class="flex items-center gap-3">
+    <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <g clip-path="url(#clip0_6_535)">
+        <path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path>
+      </g>
+      <defs>
+        <clipPath id="clip0_6_535">
+          <rect fill="white" height="48" width="48"></rect>
+        </clipPath>
+      </defs>
+    </svg>
+    <h1 class="text-xl font-bold">MeetHive</h1>
+  </div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+  <aside class="w-80 border-r border-black/10 p-4">
+    <div class="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-black/20 p-6 text-center">
+      <h3 class="text-lg font-bold text-black">No Communities</h3>
+      <p class="mt-1 text-sm text-black/60">Get started by creating a new community.</p>
+      <button class="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-black">Create Community</button>
+    </div>
+  </aside>
+  <main class="flex flex-1 flex-col">
+    <div class="flex flex-1 items-center justify-center p-6">
+      <div class="flex flex-col items-center gap-4 text-center">
+        <div class="w-full max-w-sm rounded-lg bg-cover bg-center aspect-video" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC_L20B37nLtc2Zc17w-j7KtntO1rBiWpoCl-1qvvy4CriW8OhjdrGcTxcti9YPqP_CVwoRdkwvD2cZGl0bSbVeVxQkWyjPPBz12R7gUcLtd0b7J6Dhr586qRNaV0N0LIEHg_YppgNrX3OHpukwwMcAx18hVgF_EDU2kWZ_bSYNmGyDvjRi4-vdJohfoi0dyz5rHWb0Sh5aIvdjhqsj-E39H3DIV81FLjaGYjWv4zRwqQV3kIhUgm3UxVvVDxSqxU0j1dLsI0B18-A");'></div>
+        <h2 class="text-2xl font-bold tracking-tight text-black">No messages yet</h2>
+        <p class="max-w-xs text-sm text-black/60">Be the first to break the ice! Send a message to start the conversation in your community.</p>
+      </div>
+    </div>
+    <footer class="border-t border-black/10 p-4">
+      <div class="relative">
+        <input class="w-full rounded-lg border border-black/10 bg-white py-3 pl-4 pr-32 text-sm text-black placeholder-black/50 focus:border-primary focus:ring-2 focus:ring-primary/50" placeholder="Type a message..." type="text"/>
+        <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+          <button class="flex h-8 w-8 items-center justify-center rounded-full text-black/60 hover:bg-black/10">
+            <span class="material-symbols-outlined text-xl">mood</span>
+          </button>
+          <button class="flex h-8 w-8 items-center justify-center rounded-full text-black/60 hover:bg-black/10">
+            <span class="material-symbols-outlined text-xl">attach_file</span>
+          </button>
+          <button class="ml-2 flex h-8 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-black">Send</button>
+        </div>
+      </div>
+    </footer>
+  </main>
+</div>
+</div>
+
+<script src="js/group.js"></script>
+</body>
+</html>

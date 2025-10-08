@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>MeetHive Events</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<link rel="stylesheet" href="css/event.css"/>
+</head>
+<body class="bg-background-light font-display text-gray-800">
+<div class="flex flex-col min-h-screen">
+<header class="sticky top-0 z-10 bg-background-light/80 backdrop-blur-sm border-b border-black/10">
+<div class="container mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+  <div class="flex items-center gap-2">
+    <svg class="h-8 w-8 text-primary" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+      <path d="M21.43,12.27,13,3.84a1,1,0,0,0-1.41,0L2.57,12.27a1,1,0,0,0-.29.71,1,1,0,0,0,1,1H6v6a1,1,0,0,0,1,1h4V16h2v4h4a1,1,0,0,0,1-1V13.92h2.67a1,1,0,0,0,.71-1.71Z"></path>
+    </svg>
+    <h1 class="text-xl font-bold text-gray-900">MeetHive</h1>
+  </div>
+  <nav class="hidden md:flex items-center gap-6">
+    <a class="text-sm font-medium text-gray-700 hover:text-primary transition-colors" href="#">Home</a>
+    <a class="text-sm font-medium text-gray-700 hover:text-primary transition-colors" href="#">My Events</a>
+    <a class="text-sm font-medium text-gray-700 hover:text-primary transition-colors" href="#">Create Event</a>
+  </nav>
+  <div class="flex items-center gap-4">
+    <button class="p-2 rounded-full text-gray-600 hover:bg-black/5 hover:text-gray-900 transition-colors">
+      <span class="material-symbols-outlined">notifications</span>
+    </button>
+  </div>
+</div>
+</div>
+</header>
+<main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="lg:col-span-2">
+    <h2 class="text-3xl font-bold text-gray-900 mb-6">Upcoming Events</h2>
+    <div class="flex flex-col items-center justify-center text-center p-10 sm:p-14 border-2 border-dashed border-gray-300 rounded-xl">
+      <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+        <span class="material-symbols-outlined text-primary text-3xl">event_busy</span>
+      </div>
+      <h3 class="text-lg font-bold text-gray-900">No upcoming events</h3>
+      <p class="text-sm text-gray-600 mt-1 max-w-xs">You don't have any upcoming events. Create one now to get started.</p>
+      <button class="mt-6 bg-primary text-black font-bold py-2 px-5 rounded-lg text-sm hover:bg-opacity-90 transition-colors">Create Event</button>
+    </div>
+  </div>
+  <div class="lg:col-span-1">
+    <h2 class="text-3xl font-bold text-gray-900 mb-6">Past Events</h2>
+    <div class="flex flex-col items-center justify-center text-center p-10 sm:p-14 border-2 border-dashed border-gray-300 rounded-xl">
+      <div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+        <span class="material-symbols-outlined text-primary text-3xl">history</span>
+      </div>
+      <h3 class="text-lg font-bold text-gray-900">No past events</h3>
+      <p class="text-sm text-gray-600 mt-1 max-w-xs">You haven't attended any past events yet.</p>
+      <button class="mt-6 bg-primary text-black font-bold py-2 px-5 rounded-lg text-sm hover:bg-opacity-90 transition-colors">Explore Events</button>
+    </div>
+  </div>
+</div>
+</main>
+</div>
+
+<script src="js/event.js"></script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+aside div {
+  transition: all 0.2s ease;
+}
+
+aside div:hover {
+  border-color: #f9d006;
+}
+
+input:focus {
+  outline: none;
+  border-color: #f9d006;
+  box-shadow: 0 0 0 2px rgba(249, 208, 6, 0.3);
+}
+
+button:hover {
+  opacity: 0.9;
+  cursor: pointer;
+}

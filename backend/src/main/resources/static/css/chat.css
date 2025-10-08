@@ -1,0 +1,12 @@
+body {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+input::placeholder {
+  color: #9ca3af; 
+}
+
+button:hover {
+  opacity: 0.9;
+  cursor: pointer;
+}
