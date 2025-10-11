@@ -1,82 +1,82 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>MeetHive Login</title>
-
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
-
-<link rel="stylesheet" href="css/login.css">
-
 <script id="tailwind-config">
-  tailwind.config = {
-    darkMode: "class",
-    theme: {
-      extend: {
-        colors: {
-          "primary": "#f9d006",
-          "background-light": "#f8f8f5",
-          "background-dark": "#231f0f",
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#f9d006",
+            "background-light": "#f8f8f5",
+            "background-dark": "#231f0f",
+          },
+          fontFamily: {
+            "display": ["Inter"]
+          },
+          borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
         },
-        fontFamily: {
-          "display": ["Inter"]
-        },
-        borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
       },
-    },
-  }
-</script>
-
+    }
+  </script>
+<style>
+    .form-input::placeholder {
+      color: #9e9047;
+    }
+    .dark .form-input::placeholder {
+      color: #7a7a7a;
+    }
+  </style>
 </head>
 <body class="font-display bg-background-light dark:bg-background-dark">
 <div class="flex min-h-screen flex-col items-center justify-center bg-gradient-to-br from-background-light/80 to-background-light dark:from-background-dark/80 dark:to-background-dark p-4">
-  <div class="w-full max-w-md rounded-xl bg-background-light dark:bg-background-dark shadow-lg">
-    <div class="p-8">
-      <div class="text-center">
-        <svg class="mx-auto h-12 w-auto text-primary" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path clip-rule="evenodd" d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4ZM10 14.5L15 12L10 9.5V14.5Z" fill-rule="evenodd"></path>
-          <path d="M7.5 12L10 10.5V13.5L7.5 12Z"></path>
-        </svg>
-        <h2 class="mt-4 text-3xl font-bold text-background-dark dark:text-background-light">
-          MeetHive
-        </h2>
-        <p class="mt-2 text-base text-background-dark/60 dark:text-background-light/60">
-          Connect. Collaborate. Coordinate.
-        </p>
-      </div>
-      <form class="mt-8 space-y-6">
-        <div class="space-y-4 rounded-lg">
-          <div>
-            <label class="sr-only" for="username">Username</label>
-            <input autocomplete="username" class="form-input relative block w-full appearance-none rounded-lg border-none bg-background-dark/5 dark:bg-background-light/5 px-3 py-4 text-background-dark dark:text-background-light placeholder-opacity-50 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm" id="username" name="username" placeholder="Username" required="" type="text"/>
-          </div>
-          <div>
-            <label class="sr-only" for="password">Password</label>
-            <input autocomplete="current-password" class="form-input relative block w-full appearance-none rounded-lg border-none bg-background-dark/5 dark:bg-background-light/5 px-3 py-4 text-background-dark dark:text-background-light placeholder-opacity-50 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm" id="password" name="password" placeholder="Password" required="" type="password"/>
-          </div>
-        </div>
-        <div>
-          <button class="group relative flex w-full justify-center rounded-lg border border-transparent bg-primary px-4 py-3 text-sm font-bold text-background-dark hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-light dark:focus:ring-offset-background-dark" type="submit">
-            Login
-          </button>
-        </div>
-      </form>
-      <div class="mt-6 text-center">
-        <p class="text-sm text-background-dark/60 dark:text-background-light/60">
-          Don't have an account?
-          <a class="font-medium text-primary hover:text-primary/80" href="#">
-            Sign up
-          </a>
-        </p>
-      </div>
-    </div>
-  </div>
+<div class="w-full max-w-md rounded-xl bg-background-light dark:bg-background-dark shadow-lg">
+<div class="p-8">
+<div class="text-center">
+<svg class="mx-auto h-12 w-auto text-primary" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M12 2C17.5228 2 22 6.47715 22 12C22 17.5228 17.5228 22 12 22C6.47715 22 2 17.5228 2 12C2 6.47715 6.47715 2 12 2ZM12 4C7.58172 4 4 7.58172 4 12C4 16.4183 7.58172 20 12 20C16.4183 20 20 16.4183 20 12C20 7.58172 16.4183 4 12 4ZM10 14.5L15 12L10 9.5V14.5Z" fill-rule="evenodd"></path>
+<path d="M7.5 12L10 10.5V13.5L7.5 12Z"></path>
+</svg>
+<h2 class="mt-4 text-3xl font-bold text-background-dark dark:text-background-light">
+                MeetHive
+            </h2>
+<p class="mt-2 text-base text-background-dark/60 dark:text-background-light/60">
+                Connect. Collaborate. Coordinate.
+            </p>
+</div>
+<form class="mt-8 space-y-6">
+<div class="space-y-4 rounded-lg">
+<div>
+<label class="sr-only" for="username">Username</label>
+<input autocomplete="username" class="form-input relative block w-full appearance-none rounded-lg border-none bg-background-dark/5 dark:bg-background-light/5 px-3 py-4 text-background-dark dark:text-background-light placeholder-opacity-50 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm" id="username" name="username" placeholder="Username" required="" type="text"/>
+</div>
+<div>
+<label class="sr-only" for="password">Password</label>
+<input autocomplete="current-password" class="form-input relative block w-full appearance-none rounded-lg border-none bg-background-dark/5 dark:bg-background-light/5 px-3 py-4 text-background-dark dark:text-background-light placeholder-opacity-50 focus:z-10 focus:border-primary focus:outline-none focus:ring-primary sm:text-sm" id="password" name="password" placeholder="Password" required="" type="password"/>
+</div>
+</div>
+<div>
+<button class="group relative flex w-full justify-center rounded-lg border border-transparent bg-primary px-4 py-3 text-sm font-bold text-background-dark hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background-light dark:focus:ring-offset-background-dark" type="submit">
+              Login
+            </button>
+</div>
+</form>
+<div class="mt-6 text-center">
+<p class="text-sm text-background-dark/60 dark:text-background-light/60">
+                Don't have an account?
+                <a class="font-medium text-primary hover:text-primary/80" href="#">
+                    Sign up
+                </a>
+</p>
+</div>
+</div>
+</div>
 </div>
 
-<script src="js/login.js"></script>
-</body>
-</html>
+</body></html>
