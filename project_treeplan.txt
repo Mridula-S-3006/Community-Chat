@@ -2,94 +2,95 @@ community-chat/
 │
 ├── README.md
 │
-├── backend/
-│   │   pom.xml
-│   │   mvnw
-│   │   mvnw.cmd
-│   │
-│   ├── src/
-│   │   ├── main/
-│   │   │   ├── java/
-│   │   │   │   └── com/example/communitychat/
-│   │   │   │       │   CommunityChatApplication.java
-│   │   │   │       │   SecurityConfig.java
-│   │   │   │       │
-│   │   │   │       ├── config/
-│   │   │   │       │   WebSocketConfig.java
-│   │   │   │       │
-│   │   │   │       ├── controller/
-│   │   │   │       │   AuthController.java
-│   │   │   │       │   ChatWsController.java
-│   │   │   │       │   ChatRestController.java
-│   │   │   │       │   GroupController.java         ← handles groups creation, members
-│   │   │   │       │   EventController.java         ← handles events (CRUD + responses)
-│   │   │   │       │   CalendarController.java      ← user calendar fetch
-│   │   │   │       │
-│   │   │   │       ├── model/
-│   │   │   │       │   User.java
-│   │   │   │       │   Message.java
-│   │   │   │       │   Group.java
-│   │   │   │       │   Event.java
-│   │   │   │       │   EventResponse.java           ← going / not going / unsure
-│   │   │   │       │
-│   │   │   │       ├── repository/
-│   │   │   │       │   UserRepository.java
-│   │   │   │       │   MessageRepository.java
-│   │   │   │       │   GroupRepository.java
-│   │   │   │       │   EventRepository.java
-│   │   │   │       │   EventResponseRepository.java
-│   │   │   │       │
-│   │   │   │       └── service/
-│   │   │   │           AuthService.java
-│   │   │   │           MessageService.java
-│   │   │   │           GroupService.java
-│   │   │   │           EventService.java
-│   │   │   │           CalendarService.java
-│   │   │   │
-│   │   │   └── resources/
-│   │   │       │   application.properties
-│   │   │       │
-│   │   │       ├── static/
-│   │   │       │   ├── css/
-│   │   │       │   │   styles.css
-│   │   │       │   │   event.css
-│   │   │       │   │   group.css
-│   │   │       │   │
-│   │   │       │   ├── js/
-│   │   │       │   │   auth.js
-│   │   │       │   │   chat.js
-│   │   │       │   │   group.js
-│   │   │       │   │   event.js
-│   │   │       │   │   calendar.js
-│   │   │       │   │
-│   │   │       │   ├── images/
-│   │   │       │   │   logo.png
-│   │   │       │   │   banner.jpg
-│   │   │       │   │
-│   │   │       │   └── pages/
-│   │   │       │       ├── login.html
-│   │   │       │       ├── signup.html
-│   │   │       │       ├── chat.html
-│   │   │       │       ├── group.html
-│   │   │       │       ├── event.html
-│   │   │       │       └── calendar.html
-│   │   │       │
-│   │   │       └── templates/        ← if you ever use Thymeleaf later
-│   │   │
-│   │   └── test/
-│   │       └── java/com/example/communitychat/
-│   │           CommunityChatApplicationTests.java
-│   │
-│   └── target/
-│       (auto-generated build files)
-│
-└── frontend_stitch_original/
-    ├── user_login_screen/
-    │   ├── code.html
-    │   └── screen.png
-    ├── user_sign_up_screen/
-    │   ├── code.html
-    │   └── screen.png
-    └── chat_window_screen/
-        ├── signup_new.html
-        └── signup_pic.png
+└── backend/
+    │   pom.xml
+    │   mvnw
+    │   mvnw.cmd
+    │
+    ├── src/
+    │   ├── main/
+    │   │   ├── java/
+    │   │   │   └── com/
+    │   │   │       └── communitychat/
+    │   │   │           └── community_chat/
+    │   │   │               │   CommunityChatApplication.java
+    │   │   │               │   SecurityConfig.java
+    │   │   │               │
+    │   │   │               ├── config/
+    │   │   │               │       WebSocketConfig.java
+    │   │   │               │       JwtAuthenticationFilter.java
+    │   │   │               │
+    │   │   │               ├── controller/
+    │   │   │               │       AuthController.java
+    │   │   │               │       UserController.java
+    │   │   │               │       MessageController.java
+    │   │   │               │       GroupController.java
+    │   │   │               │       EventController.java
+    │   │   │               │       CalendarController.java
+    │   │   │               │
+    │   │   │               ├── model/
+    │   │   │               │   ├── entity/
+    │   │   │               │   │       User.java
+    │   │   │               │   │       Message.java
+    │   │   │               │   │       Group.java
+    │   │   │               │   │       GroupMember.java
+    │   │   │               │   │       Event.java
+    │   │   │               │   │       EventResponse.java
+    │   │   │               │   │
+    │   │   │               │   └── dto/
+    │   │   │               │           LoginRequest.java
+    │   │   │               │           SignupRequest.java
+    │   │   │               │           MessageDto.java
+    │   │   │               │           GroupDto.java
+    │   │   │               │           EventDto.java
+    │   │   │               │           EventResponseDto.java
+    │   │   │               │
+    │   │   │               ├── repository/
+    │   │   │               │       UserRepository.java
+    │   │   │               │       MessageRepository.java
+    │   │   │               │       GroupRepository.java
+    │   │   │               │       GroupMemberRepository.java
+    │   │   │               │       EventRepository.java
+    │   │   │               │       EventResponseRepository.java
+    │   │   │               │
+    │   │   │               ├── service/
+    │   │   │               │       AuthService.java
+    │   │   │               │       UserService.java
+    │   │   │               │       MessageService.java
+    │   │   │               │       GroupService.java
+    │   │   │               │       EventService.java
+    │   │   │               │       CalendarService.java
+    │   │   │               │       JwtService.java
+    │   │   │               │
+    │   │   │               └── util/
+    │   │   │                       JwtUtil.java
+    │   │   │                       PasswordUtil.java
+    │   │   │
+    │   │   └── resources/
+    │   │       │   application.properties
+    │   │       │
+    │   │       └── static/
+    │   │               login.html
+    │   │               signup.html
+    │   │               chat.html
+    │   │               group.html
+    │   │               event.html
+    │   │               calendar.html
+    │   │
+    │   │           (JS files - to be added)
+    │   │               auth.js
+    │   │               chat.js
+    │   │               group.js
+    │   │               event.js
+    │   │               calendar.js
+    │   │               websocket.js
+    │   │               api.js
+    │   │
+    │   └── test/
+    │       └── java/
+    │           └── com/
+    │               └── communitychat/
+    │                   └── community_chat/
+    │                           CommunityChatApplicationTests.java
+    │
+    └── target/

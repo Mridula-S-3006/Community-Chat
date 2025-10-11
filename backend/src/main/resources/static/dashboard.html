@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>MeetHive Dashboard</title>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f9d006",
+                        "background-light": "#f8f8f5",
+                        "background-dark": "#231f0f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-background-dark dark:text-background-light">
+<div class="flex flex-col min-h-screen">
+<header class="flex items-center justify-between p-6 border-b border-background-dark/10 dark:border-background-light/10">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 text-primary">
+<svg fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><g clip-path="url(#clip0_6_535)"><path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM24 38.7574L35.7574 27H12.2426L24 38.7574Z" fill="currentColor" fill-rule="evenodd"></path></g><defs><clipPath id="clip0_6_535"><rect fill="white" height="48" width="48"></rect></clipPath></defs></svg>
+</div>
+<h1 class="text-xl font-bold">MeetHive</h1>
+</div>
+<div class="flex items-center gap-4">
+<div class="text-right">
+<p class="font-bold">Jane Doe</p>
+<p class="text-sm text-background-dark/60 dark:text-background-light/60">@janedoe</p>
+</div>
+</div>
+</header>
+<main class="flex flex-col items-center justify-center flex-grow p-8">
+<h2 class="text-4xl font-bold mb-12">Welcome to MeetHive</h2>
+<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 w-full max-w-6xl">
+<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="#">
+<div class="p-4 mb-4 rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-4xl">chat</span>
+</div>
+<p class="text-lg font-semibold">Chat</p>
+</a>
+<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="#">
+<div class="p-4 mb-4 rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-4xl">groups</span>
+</div>
+<p class="text-lg font-semibold">Groups</p>
+</a>
+<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="#">
+<div class="p-4 mb-4 rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-4xl">event</span>
+</div>
+<p class="text-lg font-semibold">Events</p>
+</a>
+<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="#">
+<div class="p-4 mb-4 rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined text-4xl">calendar_month</span>
+</div>
+<p class="text-lg font-semibold">Calendar</p>
+</a>
+</div>
+</main>
+</div>
+</body></html>
