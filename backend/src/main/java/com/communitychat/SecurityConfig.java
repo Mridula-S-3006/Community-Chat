@@ -1,4 +1,4 @@
-package com.communitychat.community_chat;
+package com.communitychat;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

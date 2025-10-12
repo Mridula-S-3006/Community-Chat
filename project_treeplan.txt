@@ -12,7 +12,7 @@ community-chat/
     │   │   ├── java/
     │   │   │   └── com/
     │   │   │       └── communitychat/
-    │   │   │           └── community_chat/
+    │   │   │           └---!
     │   │   │               │   CommunityChatApplication.java
     │   │   │               │   SecurityConfig.java
     │   │   │               │
