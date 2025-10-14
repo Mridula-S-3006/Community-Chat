@@ -1,16 +1,25 @@
 package com.communitychat.controller;
 
-import com.communitychat.model.entity.User;
-import com.communitychat.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.communitychat.model.entity.User;
+import com.communitychat.service.UserService;
+
 @RestController
 @RequestMapping("/api/users")
+@CrossOrigin(origins = "*") 
 public class UserController {
 
     private final UserService userService;
@@ -47,7 +56,9 @@ public class UserController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<User>> searchUsers(@RequestParam String username) {
-        return ResponseEntity.ok(userService.searchUsersByUsername(username));
+    public ResponseEntity<List<User>> searchUsers(@RequestParam("query") String query) {
+        List<User> users = userService.searchUsersByUsername(query);
+        return ResponseEntity.ok(users);
     }
+    
 }

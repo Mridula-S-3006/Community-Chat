@@ -1,18 +1,19 @@
 package com.communitychat.service;
 
-import com.communitychat.model.entity.Group;
-import com.communitychat.model.entity.GroupMember;
-import com.communitychat.model.entity.User;
-import com.communitychat.repository.GroupRepository;
-import com.communitychat.repository.GroupMemberRepository;
-import com.communitychat.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import com.communitychat.model.entity.Group;
+import com.communitychat.model.entity.GroupMember;
+import com.communitychat.model.entity.User;
+import com.communitychat.repository.GroupMemberRepository;
+import com.communitychat.repository.GroupRepository;
+import com.communitychat.repository.UserRepository;
 
 @Service
 public class GroupService {
@@ -34,8 +35,9 @@ public class GroupService {
             throw new Exception("Owner not found");
         }
 
-        if (groupRepository.findByName(name).isPresent()) {
-            throw new Exception("Group name already exists");
+        // Fixed: check uniqueness per owner
+        if (groupRepository.findByNameAndOwner(name, owner.get()).isPresent()) {
+            throw new Exception("You already have a group with this name");
         }
 
         Group group = new Group();
@@ -43,6 +45,7 @@ public class GroupService {
         group.setOwner(owner.get());
         Group savedGroup = groupRepository.save(group);
 
+        // Owner always becomes a member
         GroupMember ownerMember = new GroupMember();
         ownerMember.setGroup(savedGroup);
         ownerMember.setUser(owner.get());
@@ -104,5 +107,14 @@ public class GroupService {
 
         groupMemberRepository.delete(gm.get());
         return group.get();
+    }
+
+    public Group getGroupById(Long id) throws Exception {
+        return groupRepository.findById(id)
+            .orElseThrow(() -> new Exception("Group not found"));
+    }
+
+    public List<Group> getAllGroups() {
+        return groupRepository.findAll();
     }
 }

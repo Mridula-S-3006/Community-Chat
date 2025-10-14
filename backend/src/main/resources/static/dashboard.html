@@ -38,33 +38,34 @@
 </div>
 <div class="flex items-center gap-4">
 <div class="text-right">
-<p class="font-bold"></p>
-<p class="text-sm text-background-dark/60 dark:text-background-light/60"></p>
+<p id="user-name" class="font-bold"></p>
+<p id="user-username" class="text-sm text-background-dark/60 dark:text-background-light/60"></p>
 </div>
+<button id="logout-btn" class="px-4 py-2 text-sm bg-red-500 text-white rounded-lg hover:bg-red-600">Logout</button>
 </div>
 </header>
 <main class="flex flex-col items-center justify-center flex-grow p-8">
 <h2 class="text-4xl font-bold mb-12">Welcome to MeetHive</h2>
 <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 w-full max-w-6xl">
-<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="#">
+<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="chat.html">
 <div class="p-4 mb-4 rounded-full bg-primary/20 text-primary">
 <span class="material-symbols-outlined text-4xl">chat</span>
 </div>
 <p class="text-lg font-semibold">Chat</p>
 </a>
-<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="#">
+<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="group.html">
 <div class="p-4 mb-4 rounded-full bg-primary/20 text-primary">
 <span class="material-symbols-outlined text-4xl">groups</span>
 </div>
 <p class="text-lg font-semibold">Groups</p>
 </a>
-<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="#">
+<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="event.html">
 <div class="p-4 mb-4 rounded-full bg-primary/20 text-primary">
 <span class="material-symbols-outlined text-4xl">event</span>
 </div>
 <p class="text-lg font-semibold">Events</p>
 </a>
-<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="#">
+<a class="group flex flex-col items-center justify-center p-6 bg-white dark:bg-background-dark/50 rounded-xl border border-background-dark/10 dark:border-background-light/10 shadow-sm hover:shadow-lg hover:scale-105 hover:border-primary transition-all duration-300" href="calendar.html">
 <div class="p-4 mb-4 rounded-full bg-primary/20 text-primary">
 <span class="material-symbols-outlined text-4xl">calendar_month</span>
 </div>
@@ -73,6 +74,22 @@
 </div>
 </main>
 </div>
-<script src="api.js"></script>
 
+<script>
+if (!sessionStorage.getItem('jwt_token')) {
+    window.location.href = 'login.html';
+}
+
+const currentUser = JSON.parse(sessionStorage.getItem('current_user') || '{}');
+if (currentUser.username) {
+    document.getElementById('user-name').textContent = currentUser.username;
+    document.getElementById('user-username').textContent = '@' + currentUser.username;
+}
+
+document.getElementById('logout-btn').addEventListener('click', () => {
+    sessionStorage.removeItem('jwt_token');
+    sessionStorage.removeItem('current_user');
+    window.location.href = 'login.html';
+});
+</script>
 </body></html>

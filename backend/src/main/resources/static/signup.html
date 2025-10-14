@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <title>MeetHive - Sign Up</title>
@@ -8,28 +9,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <script id="tailwind-config">
-      tailwind.config = {
-        darkMode: "class",
-        theme: {
-          extend: {
-            colors: {
-              "primary": "#f9d006",
-              "background-light": "#f8f8f5",
-              "background-dark": "#231f0f",
-            },
-            fontFamily: {
-              "display": ["Inter"]
-            },
-            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
-          },
-        },
-      }
-    </script>
+tailwind.config = {
+  darkMode: "class",
+  theme: {
+    extend: {
+      colors: {
+        "primary": "#f9d006",
+        "background-light": "#f8f8f5",
+        "background-dark": "#231f0f",
+      },
+      fontFamily: {
+        "display": ["Inter"]
+      },
+      borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+    },
+  },
+}
+</script>
 <style>
-      body {
-        font-family: 'Inter', sans-serif;
-      }
-    </style>
+body { font-family: 'Inter', sans-serif; }
+</style>
 </head>
 <body class="bg-background-light dark:bg-background-dark font-display">
 <div class="flex flex-col items-center justify-center min-h-screen p-4 bg-gradient-to-br from-background-light/80 to-background-light dark:from-background-dark/80 dark:to-background-dark">
@@ -51,7 +50,7 @@
 </div>
 <div class="bg-background-light dark:bg-background-dark/50 p-8 rounded-xl shadow-lg border border-primary/20">
 <h2 class="text-2xl font-bold text-center text-background-dark dark:text-background-light mb-8">Create your account</h2>
-<form class="space-y-4">
+<form id="signupForm" class="space-y-4">
 <div>
 <label class="sr-only" for="name">Name</label>
 <input class="w-full px-4 py-3 rounded-lg bg-background-light/50 dark:bg-background-dark/70 text-background-dark dark:text-background-light border border-primary/20 focus:ring-primary focus:border-primary placeholder-background-dark/40 dark:placeholder-background-light/40" id="name" name="name" placeholder="Name" type="text"/>
@@ -73,17 +72,73 @@
 <input class="w-full px-4 py-3 rounded-lg bg-background-light/50 dark:bg-background-dark/70 text-background-dark dark:text-background-light border border-primary/20 focus:ring-primary focus:border-primary placeholder-background-dark/40 dark:placeholder-background-light/40" id="confirm-password" name="confirm-password" placeholder="Confirm Password" type="password"/>
 </div>
 <button class="w-full py-3 mt-6 font-semibold text-background-dark bg-primary rounded-lg shadow-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary focus:ring-offset-background-light dark:focus:ring-offset-background-dark transition-colors duration-200" type="submit">
-                        Create Account
-                    </button>
+Create Account
+</button>
 </form>
 <p class="mt-8 text-sm text-center text-background-dark/60 dark:text-background-light/60">
-                    Already have an account? 
-                    <a class="font-medium text-primary hover:underline" href="#">Log in.</a>
+Already have an account? 
+<a class="font-medium text-primary hover:underline" href="login.html">Log in.</a>
 </p>
 </div>
 </div>
 </div>
-<script src="api.js"></script>
-<script src="auth.js"></script>
 
-</body></html>
+<script>
+if (sessionStorage.getItem('jwt_token')) {
+    window.location.href = 'dashboard.html';
+}
+
+document.getElementById('signupForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const name = document.getElementById('name').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const confirmPassword = document.getElementById('confirm-password').value.trim();
+
+    if (!name || !email || !username || !password || !confirmPassword) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        alert('Passwords do not match');
+        return;
+    }
+
+    if (password.length < 6) {
+        alert('Password must be at least 6 characters');
+        return;
+    }
+
+    try {
+        const response = await fetch('http://localhost:8080/api/auth/signup', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, username, password })
+        });
+
+        if (!response.ok) {
+            const errData = await response.json().catch(() => ({}));
+            throw new Error(errData.message || 'Signup failed');
+        }
+
+        const data = await response.json();
+        sessionStorage.setItem('jwt_token', data.token);
+        sessionStorage.setItem('current_user', JSON.stringify({
+            id: data.userId,
+            username: data.username,
+            email: data.email
+        }));
+        
+        alert('Signup successful!');
+        window.location.href = 'dashboard.html';
+    } catch(err) {
+        alert('Signup failed: ' + err.message);
+    }
+});
+</script>
+
+</body>
+</html>

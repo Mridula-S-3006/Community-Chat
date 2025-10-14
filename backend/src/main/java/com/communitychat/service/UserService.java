@@ -43,10 +43,7 @@ public class UserService {
 
         return userRepository.save(updated);
     }
-
     public List<User> searchUsersByUsername(String username) {
-        return userRepository.findAll().stream()
-                .filter(u -> u.getUsername().toLowerCase().contains(username.toLowerCase()))
-                .toList();
+        return userRepository.findTop5ByUsernameContainingIgnoreCase(username);
     }
 }

@@ -50,49 +50,187 @@
 <svg class="h-8 w-8 text-primary" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
 <path d="M21.43,12.27,13,3.84a1,1,0,0,0-1.41,0L2.57,12.27a1,1,0,0,0-.29.71,1,1,0,0,0,1,1H6v6a1,1,0,0,0,1,1h4V16h2v4h4a1,1,0,0,0,1-1V13.92h2.67a1,1,0,0,0,.71-1.71Z"></path>
 </svg>
-<h1 class="text-xl font-bold text-gray-900">MeetHive</h1>
+<h1 class="text-xl font-bold text-gray-900">MeetHive Events</h1>
 </div>
 <nav class="hidden md:flex items-center gap-6">
-<a class="text-sm font-medium text-gray-700 hover:text-primary transition-colors" href="#">Home</a>
-<a class="text-sm font-medium text-gray-700 hover:text-primary transition-colors" href="#">My Events</a>
-<a class="text-sm font-medium text-gray-700 hover:text-primary transition-colors" href="#">Create Event</a>
+<a class="text-sm font-medium text-gray-700 hover:text-primary transition-colors" href="dashboard.html">Home</a>
+<a class="text-sm font-medium text-primary" href="event.html">My Events</a>
+<button id="create-event-btn" class="text-sm font-medium text-gray-700 hover:text-primary transition-colors">Create Event</button>
 </nav>
-<div class="flex items-center gap-4">
-<button class="p-2 rounded-full text-gray-600 hover:bg-black/5 hover:text-gray-900 transition-colors">
-<span class="material-symbols-outlined">notifications</span>
-</button>
-</div>
 </div>
 </div>
 </header>
 <main class="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-<div class="lg:col-span-2">
-<h2 class="text-3xl font-bold text-gray-900 mb-6">Upcoming Events</h2>
-<div class="flex flex-col items-center justify-center text-center p-10 sm:p-14 border-2 border-dashed border-gray-300 rounded-xl">
-<div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-<span class="material-symbols-outlined text-primary text-3xl">event_busy</span>
+<div class="mb-4">
+<select id="group-filter" class="px-4 py-2 border rounded-lg">
+<option value="">All Groups</option>
+</select>
 </div>
-<h3 class="text-lg font-bold text-gray-900">No upcoming events</h3>
-<p class="text-sm text-gray-600 mt-1 max-w-xs">You don't have any upcoming events. Create one now to get started.</p>
-<button class="mt-6 bg-primary text-black font-bold py-2 px-5 rounded-lg text-sm hover:bg-opacity-90 transition-colors">Create Event</button>
-</div>
-</div>
-<div class="lg:col-span-1">
-<h2 class="text-3xl font-bold text-gray-900 mb-6">Past Events</h2>
-<div class="flex flex-col items-center justify-center text-center p-10 sm:p-14 border-2 border-dashed border-gray-300 rounded-xl">
-<div class="w-16 h-16 bg-primary/20 rounded-full flex items-center justify-center mb-4">
-<span class="material-symbols-outlined text-primary text-3xl">history</span>
-</div>
-<h3 class="text-lg font-bold text-gray-900">No past events</h3>
-<p class="text-sm text-gray-600 mt-1 max-w-xs">You haven't attended any past events yet.</p>
-<button class="mt-6 bg-primary text-black font-bold py-2 px-5 rounded-lg text-sm hover:bg-opacity-90 transition-colors">Explore Events</button>
-</div>
-</div>
-</div>
+<div id="events-list" class="grid grid-cols-1 gap-6"></div>
 </main>
 </div>
-<script src="api.js"></script>
-<script src="event.js"></script>
 
+<div id="event-form-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+<div class="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+<h3 id="form-title" class="text-2xl font-bold mb-4">Create Event</h3>
+<form id="event-form" class="space-y-4">
+<div>
+<label class="block text-sm font-bold mb-2">Title</label>
+<input id="event-title" class="w-full border rounded-lg px-3 py-2" required type="text"/>
+</div>
+<div>
+<label class="block text-sm font-bold mb-2">Description</label>
+<textarea id="event-description" class="w-full border rounded-lg px-3 py-2" required rows="3"></textarea>
+</div>
+<div>
+<label class="block text-sm font-bold mb-2">Date & Time</label>
+<input id="event-datetime" class="w-full border rounded-lg px-3 py-2" required type="datetime-local"/>
+</div>
+<div>
+<label class="block text-sm font-bold mb-2">Location</label>
+<input id="event-location" class="w-full border rounded-lg px-3 py-2" type="text"/>
+</div>
+<div>
+<label class="block text-sm font-bold mb-2">Group</label>
+<select id="event-group-select" class="w-full border rounded-lg px-3 py-2" required>
+<option value="">Select a group</option>
+</select>
+</div>
+<div class="flex gap-2">
+<button type="submit" class="flex-1 bg-primary text-black px-4 py-2 rounded-lg font-bold">Save</button>
+<button type="button" id="cancel-event-btn" class="flex-1 bg-gray-200 text-black px-4 py-2 rounded-lg font-bold">Cancel</button>
+</div>
+</form>
+</div>
+</div>
+
+<script>
+if (!sessionStorage.getItem('jwt_token')) window.location.href = 'login.html';
+
+let editingEventId = null;
+const token = sessionStorage.getItem('jwt_token');
+
+async function api(endpoint, method = 'GET', body = null) {
+    const res = await fetch(`http://localhost:8080/api${endpoint}`, {
+        method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        body: body ? JSON.stringify(body) : null
+    });
+    if (!res.ok) throw new Error('API failed');
+    return res.json();
+}
+
+async function loadEvents() {
+    try {
+        const events = await api('/events/user');
+        const list = document.getElementById('events-list');
+        list.innerHTML = events.length ? '' : '<div class="col-span-full text-center p-10"><p class="text-gray-500">No events yet. Create one!</p></div>';
+        events.forEach(e => {
+            const div = document.createElement('div');
+            div.className = 'event-card p-6 bg-white rounded-xl border shadow-sm';
+            div.dataset.groupId = e.groupId;
+            div.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-2 mb-2">
+                            <h3 class="text-xl font-bold">${e.title}</h3>
+                            <span class="text-xs bg-primary px-2 py-1 rounded">${e.groupName}</span>
+                        </div>
+                        <p class="text-gray-600 mb-2">${new Date(e.dateTime).toLocaleString()}</p>
+                        ${e.location ? `<p class="text-sm text-gray-500 mb-2">📍 ${e.location}</p>` : ''}
+                        <p class="text-gray-700 mt-3">${e.description}</p>
+                    </div>
+                    <div class="flex gap-2 ml-4">
+                        <button class="edit-btn px-3 py-1 bg-blue-500 text-white rounded text-sm" data-id="${e.id}">Edit</button>
+                        <button class="delete-btn px-3 py-1 bg-red-500 text-white rounded text-sm" data-id="${e.id}">Delete</button>
+                    </div>
+                </div>
+            `;
+            div.querySelector('.edit-btn').onclick = () => editEvent(e);
+            div.querySelector('.delete-btn').onclick = () => deleteEvent(e.id);
+            list.appendChild(div);
+        });
+    } catch (e) {}
+}
+
+async function loadGroups() {
+    try {
+        const groups = await api('/groups');
+        const select = document.getElementById('event-group-select');
+        const filter = document.getElementById('group-filter');
+        
+        select.innerHTML = '<option value="">Select a group</option>';
+        filter.innerHTML = '<option value="">All Groups</option>';
+        
+        groups.forEach(g => {
+            select.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+            filter.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+        });
+    } catch (e) {}
+}
+
+document.getElementById('create-event-btn').onclick = () => {
+    document.getElementById('event-form-modal').classList.remove('hidden');
+    document.getElementById('form-title').textContent = 'Create Event';
+    document.getElementById('event-form').reset();
+    editingEventId = null;
+};
+
+document.getElementById('cancel-event-btn').onclick = () => {
+    document.getElementById('event-form-modal').classList.add('hidden');
+};
+
+document.getElementById('event-form').onsubmit = async (e) => {
+    e.preventDefault();
+    const data = {
+        title: document.getElementById('event-title').value,
+        description: document.getElementById('event-description').value,
+        dateTime: document.getElementById('event-datetime').value,
+        location: document.getElementById('event-location').value,
+        groupId: parseInt(document.getElementById('event-group-select').value)
+    };
+    
+    try {
+        if (editingEventId) {
+            await api(`/events/${editingEventId}`, 'PUT', data);
+        } else {
+            await api('/events', 'POST', data);
+        }
+        document.getElementById('event-form-modal').classList.add('hidden');
+        loadEvents();
+    } catch (err) {
+        alert('Failed to save event');
+    }
+};
+
+function editEvent(event) {
+    editingEventId = event.id;
+    document.getElementById('form-title').textContent = 'Edit Event';
+    document.getElementById('event-title').value = event.title;
+    document.getElementById('event-description').value = event.description;
+    document.getElementById('event-datetime').value = event.dateTime.slice(0, 16);
+    document.getElementById('event-location').value = event.location || '';
+    document.getElementById('event-group-select').value = event.groupId;
+    document.getElementById('event-form-modal').classList.remove('hidden');
+}
+
+async function deleteEvent(id) {
+    if (!confirm('Delete this event?')) return;
+    try {
+        await api(`/events/${id}`, 'DELETE');
+        loadEvents();
+    } catch (e) {
+        alert('Failed to delete event');
+    }
+}
+
+document.getElementById('group-filter').onchange = (e) => {
+    const groupId = e.target.value;
+    document.querySelectorAll('.event-card').forEach(card => {
+        card.style.display = !groupId || card.dataset.groupId === groupId ? 'block' : 'none';
+    });
+};
+
+loadGroups();
+loadEvents();
+</script>
 </body></html>

@@ -1,91 +1,240 @@
 <!DOCTYPE html>
-<html lang="en"><head>
+<html lang="en">
+<head>
 <meta charset="utf-8"/>
-<title>MeetHive</title>
+<title>MeetHive Groups</title>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 
 <script id="tailwind-config">
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            "primary": "#f9d006",
-            "background-light": "#ffffff",
-            "background-dark": "#ffffff", // Changed to white for light mode
-          },
-          fontFamily: {
-            "display": ["Plus Jakarta Sans"]
-          },
-          borderRadius: {
-            "DEFAULT": "0.25rem",
-            "lg": "0.5rem",
-            "xl": "0.75rem",
-            "full": "9999px"
-          },
-        },
-      },
-    }
-  </script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: { "primary": "#f9d006", "background-light": "#ffffff" },
+      fontFamily: { "display": ["Plus Jakarta Sans"] },
+      borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+    },
+  },
+}
+</script>
 </head>
 <body class="bg-background-light font-display text-black">
+
 <div class="flex h-screen flex-col">
 <header class="flex h-16 shrink-0 items-center justify-between border-b border-black/10 px-6">
-<div class="flex items-center gap-3">
-<svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
-<g clip-path="url(#clip0_6_535)">
-<path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path>
-</g>
-<defs>
-<clipPath id="clip0_6_535">
-<rect fill="white" height="48" width="48"></rect>
-</clipPath>
-</defs>
-</svg>
-<h1 class="text-xl font-bold">MeetHive</h1>
-</div>
+  <div class="flex items-center gap-3">
+    <svg class="h-8 w-8 text-primary" fill="none" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <g clip-path="url(#clip0_6_535)">
+        <path clip-rule="evenodd" d="M47.2426 24L24 47.2426L0.757355 24L24 0.757355L47.2426 24ZM12.2426 21H35.7574L24 9.24264L12.2426 21Z" fill="currentColor" fill-rule="evenodd"></path>
+      </g>
+      <defs>
+        <clipPath id="clip0_6_535"><rect fill="white" height="48" width="48"></rect></clipPath>
+      </defs>
+    </svg>
+    <h1 class="text-xl font-bold">MeetHive Groups</h1>
+  </div>
+  <a href="dashboard.html" class="text-sm text-primary hover:underline">← Dashboard</a>
 </header>
+
 <div class="flex flex-1 overflow-hidden">
-<aside class="w-80 border-r border-black/10 p-4">
-<div class="flex h-full flex-col items-center justify-center rounded-lg border-2 border-dashed border-black/20 p-6 text-center">
-<h3 class="text-lg font-bold text-black">No Communities</h3>
-<p class="mt-1 text-sm text-black/60">Get started by creating a new community.</p>
-<button class="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-black">Create Community</button>
-</div>
+<aside class="w-80 border-r border-black/10 p-4 overflow-y-auto bg-white">
+  <button id="create-group-btn" class="w-full mb-4 rounded-lg bg-primary px-4 py-2 text-sm font-bold text-black">Create Group</button>
+  <h2 class="text-lg font-bold mb-3">Your Groups</h2>
+  <div id="groups-list" class="space-y-2"></div>
 </aside>
+
 <main class="flex flex-1 flex-col">
-<div class="flex flex-1 items-center justify-center p-6">
-<div class="flex flex-col items-center gap-4 text-center">
-<div class="w-full max-w-sm rounded-lg bg-cover bg-center aspect-video" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC_L20B37nLtc2Zc17w-j7KtntO1rBiWpoCl-1qvvy4CriW8OhjdrGcTxcti9YPqP_CVwoRdkwvD2cZGl0bSbVeVxQkWyjPPBz12R7gUcLtd0b7J6Dhr586qRNaV0N0LIEHg_YppgNrX3OHpukwwMcAx18hVgF_EDU2kWZ_bSYNmGyDvjRi4-vdJohfoi0dyz5rHWb0Sh5aIvdjhqsj-E39H3DIV81FLjaGYjWv4zRwqQV3kIhUgm3UxVvVDxSqxU0j1dLsI0B18-A");'></div>
-<h2 class="text-2xl font-bold tracking-tight text-black">No messages yet</h2>
-<p class="max-w-xs text-sm text-black/60">Be the first to break the ice! Send a message to start the conversation in your community.</p>
-</div>
-</div>
-<footer class="border-t border-black/10 p-4">
-<div class="relative">
-<input class="w-full rounded-lg border border-black/10 bg-white py-3 pl-4 pr-32 text-sm text-black placeholder-black/50 focus:border-primary focus:ring-2 focus:ring-primary/50" placeholder="Type a message..." type="text"/>
-<div class="absolute inset-y-0 right-0 flex items-center pr-3">
-<button class="flex h-8 w-8 items-center justify-center rounded-full text-black/60 hover:bg-black/10">
-<span class="material-symbols-outlined text-xl">mood</span>
-</button>
-<button class="flex h-8 w-8 items-center justify-center rounded-full text-black/60 hover:bg-black/10">
-<span class="material-symbols-outlined text-xl">attach_file</span>
-</button>
-<button class="ml-2 flex h-8 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-black">Send</button>
-</div>
-</div>
-</footer>
+  <div id="group-header" class="border-b border-black/10 px-6 py-4 font-bold"></div>
+  <div class="flex-1 overflow-y-auto">
+    <div id="group-messages-container" class="p-6"></div>
+    <div id="group-events-container" class="p-6 border-t border-black/10"></div>
+  </div>
+  <footer class="border-t border-black/10 p-4">
+    <div class="relative">
+      <input id="group-message-input" class="w-full rounded-lg border border-black/10 bg-white py-3 pl-4 pr-32 text-sm text-black placeholder-black/50 focus:border-primary focus:ring-2 focus:ring-primary/50" placeholder="Type a message..." type="text"/>
+      <div class="absolute inset-y-0 right-0 flex items-center pr-3">
+        <button id="send-group-btn" class="ml-2 flex h-8 items-center justify-center rounded-lg bg-primary px-4 text-sm font-bold text-black">Send</button>
+      </div>
+    </div>
+  </footer>
 </main>
 </div>
 </div>
+
+<div id="create-group-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center">
+<div class="bg-white rounded-xl p-6 w-full max-w-md">
+  <h3 class="text-xl font-bold mb-4">Create New Group</h3>
+  <input id="new-group-name" class="w-full mb-4 rounded-lg border border-black/10 px-3 py-2" placeholder="Group Name"/>
+  <input id="member-search" class="w-full mb-2 rounded-lg border border-black/10 px-3 py-2" placeholder="Search users..."/>
+  <div id="member-search-results" class="hidden mb-4 bg-white border rounded-lg max-h-40 overflow-y-auto"></div>
+  <div id="selected-members" class="mb-4"></div>
+  <div class="flex gap-2">
+    <button id="confirm-create-btn" class="flex-1 bg-primary text-black px-4 py-2 rounded-lg font-bold">Create</button>
+    <button id="cancel-create-btn" class="flex-1 bg-gray-200 text-black px-4 py-2 rounded-lg font-bold">Cancel</button>
+  </div>
+</div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-<script src="api.js"></script>
-<script src="websocket.js"></script>
-<script src="group.js"></script>
-<script src="event.js"></script>
+<script>
+if (!sessionStorage.getItem('jwt_token')) window.location.href = 'login.html';
+const token = sessionStorage.getItem('jwt_token');
+const currentUser = JSON.parse(sessionStorage.getItem('current_user')) || {};
 
-</body></html>
+let currentGroupId = null;
+let stompClient = null;
+let selectedMembers = [];
+
+async function api(endpoint, method = 'GET', body = null) {
+    const options = { method, headers: { 'Authorization': `Bearer ${token}` } };
+    if (body && method !== 'GET') { options.headers['Content-Type'] = 'application/json'; options.body = JSON.stringify(body); }
+    const res = await fetch(`http://localhost:8080/api${endpoint}`, options);
+    if (!res.ok) throw new Error(`API failed: ${res.status}`);
+    return res.json();
+}
+
+function connectWS() {
+    const socket = new SockJS('http://localhost:8080/ws');
+    stompClient = Stomp.over(socket);
+    stompClient.connect({ 'Authorization': `Bearer ${token}` }, () => {
+        if (currentGroupId) {
+            stompClient.subscribe(`/topic/group/${currentGroupId}`, (msg) => addGroupMessage(JSON.parse(msg.body), false));
+        }
+    });
+}
+
+async function loadGroups() {
+    try {
+        // Updated endpoint to match typical backend mapping
+        const groups = await api(`/groups/user/${currentUser.id}`);
+        const list = document.getElementById('groups-list');
+        list.innerHTML = groups.length ? '' : '<p class="text-gray-500 p-4">No groups yet</p>';
+
+        groups.forEach(g => {
+            const div = document.createElement('div');
+            div.className = 'p-3 rounded-lg cursor-pointer hover:bg-yellow-100 transition border border-black/5';
+            div.innerHTML = `<p class="font-semibold text-black">${g.name}</p>
+                             <p class="text-xs text-gray-500">${g.memberCount || 0} members</p>`;
+            div.onclick = () => openGroup(g.id, g.name);
+            list.appendChild(div);
+        });
+    } catch (e) {
+        console.error("Error loading groups:", e);
+        document.getElementById('groups-list').innerHTML = '<p class="text-red-500 p-4">Failed to load groups</p>';
+    }
+}
+
+async function openGroup(id, name) {
+    currentGroupId = id;
+    document.getElementById('group-header').textContent = name;
+    
+    if (stompClient && stompClient.connected) {
+        stompClient.subscribe(`/topic/group/${id}`, (msg) => addGroupMessage(JSON.parse(msg.body), false));
+    }
+    
+    try {
+        const msgs = await api(`/groups/${id}/messages`);
+        const container = document.getElementById('group-messages-container');
+        container.innerHTML = '';
+        msgs.forEach(m => addGroupMessage(m, m.senderId === currentUser.id));
+        const group = await api(`/groups/${id}`);
+        displayEvents(group.events || []);
+    } catch (e) { console.error(e); }
+}
+
+function addGroupMessage(msg, isSent) {
+    const container = document.getElementById('group-messages-container');
+    const div = document.createElement('div');
+    div.className = `mb-4 ${isSent ? 'text-right' : 'text-left'}`;
+    div.innerHTML = `<div class="inline-block max-w-md px-4 py-2 rounded-lg ${isSent ? 'bg-primary text-black' : 'bg-gray-200'}">
+        ${!isSent ? `<p class="text-xs font-bold mb-1">${msg.senderUsername}</p>` : ''}<p>${msg.content}</p>
+    </div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function displayEvents(events) {
+    const container = document.getElementById('group-events-container');
+    container.innerHTML = events.length ? '<h3 class="text-lg font-bold mb-4">Upcoming Events</h3>' : '';
+    events.forEach(e => {
+        const div = document.createElement('div');
+        div.className = 'p-4 bg-white border rounded-lg mb-3';
+        div.innerHTML = `<h4 class="font-bold">${e.title}</h4>
+                         <p class="text-sm text-gray-600">${new Date(e.dateTime).toLocaleString()}</p>
+                         <p class="text-sm mt-2">${e.description}</p>
+                         <div class="mt-4 flex gap-2">
+                           <button class="rsvp-btn px-3 py-1 rounded text-sm bg-green-500 text-white" data-event-id="${e.id}" data-status="ATTENDING">Going</button>
+                           <button class="rsvp-btn px-3 py-1 rounded text-sm bg-red-500 text-white" data-event-id="${e.id}" data-status="NOT_ATTENDING">Not Going</button>
+                           <button class="rsvp-btn px-3 py-1 rounded text-sm bg-yellow-500 text-white" data-event-id="${e.id}" data-status="MAYBE">Maybe</button>
+                         </div>
+                         <div id="rsvp-${e.id}" class="mt-2 text-sm text-gray-600"></div>`;
+        div.querySelectorAll('.rsvp-btn').forEach(btn => btn.onclick = async () => {
+            try { await api(`/events/${btn.dataset.eventId}/rsvp`, 'POST', { status: btn.dataset.status }); loadRSVPs(e.id); } catch(e){} });
+        container.appendChild(div);
+        loadRSVPs(e.id);
+    });
+}
+
+async function loadRSVPs(eventId) {
+    try {
+        const rsvps = await api(`/events/${eventId}/rsvps`);
+        const attending = rsvps.filter(r => r.status === 'ATTENDING').length;
+        const notAttending = rsvps.filter(r => r.status === 'NOT_ATTENDING').length;
+        const maybe = rsvps.filter(r => r.status === 'MAYBE').length;
+        document.getElementById(`rsvp-${eventId}`).textContent = `Going: ${attending} | Not Going: ${notAttending} | Maybe: ${maybe}`;
+    } catch(e){}
+}
+
+document.getElementById('send-group-btn').addEventListener('click', () => {
+    const input = document.getElementById('group-message-input');
+    const content = input.value.trim();
+    if (!content || !currentGroupId) return;
+    const msg = { senderId: currentUser.id, senderUsername: currentUser.username, groupId: currentGroupId, content, timestamp: new Date().toISOString() };
+    stompClient.send(`/app/group/${currentGroupId}`, {}, JSON.stringify(msg));
+    addGroupMessage(msg, true);
+    input.value = '';
+});
+
+document.getElementById('group-message-input').addEventListener('keypress', (e) => { if(e.key==='Enter') document.getElementById('send-group-btn').click(); });
+document.getElementById('create-group-btn').onclick = () => { document.getElementById('create-group-modal').classList.remove('hidden'); selectedMembers = []; document.getElementById('selected-members').innerHTML = ''; };
+document.getElementById('cancel-create-btn').onclick = () => document.getElementById('create-group-modal').classList.add('hidden');
+document.getElementById('confirm-create-btn').onclick = async () => {
+    const name = document.getElementById('new-group-name').value.trim();
+    if(!name) return alert('Enter group name');
+    try { await api('/groups', 'POST', { name, memberIds: selectedMembers }); document.getElementById('create-group-modal').classList.add('hidden'); loadGroups(); } catch(e){ alert('Failed to create group'); }
+};
+
+let searchTimeout;
+document.getElementById('member-search').addEventListener('input', e => {
+    clearTimeout(searchTimeout);
+    const query = e.target.value.trim();
+    const results = document.getElementById('member-search-results');
+    if(query.length<2){ results.classList.add('hidden'); return; }
+    searchTimeout = setTimeout(async () => {
+        try {
+            const users = await api(`/users/search?query=${query}`);
+            results.innerHTML = users.length ? '' : '<p class="p-2">No users</p>';
+            users.forEach(u => {
+                const div = document.createElement('div');
+                div.className = 'p-2 hover:bg-gray-100 cursor-pointer';
+                div.textContent = u.username;
+                div.onclick = () => {
+                    if(!selectedMembers.includes(u.id)){ selectedMembers.push(u.id); const badge = document.createElement('span'); badge.className = 'inline-block bg-primary px-2 py-1 rounded mr-2 mb-2'; badge.textContent = u.username; document.getElementById('selected-members').appendChild(badge); }
+                    results.classList.add('hidden');
+                };
+                results.appendChild(div);
+            });
+            results.classList.remove('hidden');
+        } catch(e){}
+    }, 300);
+});
+
+loadGroups();
+connectWS();
+</script>
+</body>
+</html>

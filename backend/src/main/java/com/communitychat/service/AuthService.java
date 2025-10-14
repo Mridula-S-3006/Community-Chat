@@ -1,7 +1,5 @@
 package com.communitychat.service;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -9,51 +7,60 @@ import com.communitychat.model.dto.LoginRequest;
 import com.communitychat.model.dto.SignupRequest;
 import com.communitychat.model.entity.User;
 import com.communitychat.repository.UserRepository;
-import com.communitychat.util.JwtUtil;
-import com.communitychat.util.PasswordUtil;
 
 @Service
 public class AuthService {
 
     private final UserRepository userRepository;
+    private final JwtProvider jwtProvider;
 
     @Autowired
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, JwtProvider jwtProvider) {
         this.userRepository = userRepository;
+        this.jwtProvider = jwtProvider;
     }
 
-    public User signup(SignupRequest request) throws Exception {
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new Exception("Email already registered");
+    public User signup(SignupRequest request) {
+  
+        String username = request.getUsername().trim();
+        String password = request.getPassword().trim();
+        String email = request.getEmail() != null ? request.getEmail().trim() : null;
+        String name = request.getName() != null ? request.getName().trim() : null;
+
+        if (userRepository.existsByUsername(username)) {
+            throw new RuntimeException("Username already exists");
         }
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new Exception("Username already taken");
+        if (email != null && userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email already exists");
         }
 
-        String hashedPassword = PasswordUtil.hashPassword(request.getPassword());
         User user = new User();
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
-        user.setPassword(hashedPassword);
+        user.setUsername(username);
+        user.setPassword(password);
+        user.setEmail(email);
+        user.setName(name);
 
         return userRepository.save(user);
     }
 
-    public String login(LoginRequest request) throws Exception {
-        Optional<User> optionalUser = userRepository.findByEmail(request.getEmail());
-        if (!optionalUser.isPresent()) {
-            throw new Exception("User not found");
+
+    public String login(LoginRequest request) {
+   
+        String username = request.getUsername().trim();
+        String password = request.getPassword().trim();
+
+        User user = userRepository.findByUsernameIgnoreCase(username)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!user.getPassword().equals(password)) {
+            throw new RuntimeException("Invalid credentials");
         }
 
-        User user = optionalUser.get();
-        if (!PasswordUtil.verifyPassword(request.getPassword(), user.getPassword())) {
-            throw new Exception("Invalid password");
-        }
-
-        return JwtUtil.generateToken(user.getId());
+        return jwtProvider.generateToken(user.getUsername());
     }
 
-    public Optional<User> getUserById(Long id) {
-        return userRepository.findById(id);
+    public User getUserByUsername(String username) throws Exception {
+        return userRepository.findByUsernameIgnoreCase(username.trim())
+                .orElseThrow(() -> new Exception("User not found"));
     }
 }

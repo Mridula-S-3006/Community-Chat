@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
-
 <script>
     tailwind.config = {
       theme: {
@@ -31,6 +30,9 @@
       },
     }
   </script>
+  <!-- Add BEFORE the closing </head> tag -->
+<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1.6.1/dist/sockjs.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
 </head>
 <body class="bg-background-light font-display text-text-dark">
 <div class="flex h-screen flex-col">
@@ -46,19 +48,23 @@
 </clipPath>
 </defs>
 </svg>
-<h1 class="text-xl font-bold text-text-dark">MeetHive</h1>
+<h1 class="text-xl font-bold text-text-dark">MeetHive Chat</h1>
 </div>
+<a href="dashboard.html" class="text-sm text-primary hover:underline">← Back to Dashboard</a>
 </header>
 <div class="flex flex-1 overflow-hidden">
-<aside class="w-80 border-r border-border-light p-4">
+<aside class="w-80 border-r border-border-light p-4 overflow-y-auto">
+<input id="user-search" class="w-full mb-4 rounded-lg border border-border-light px-3 py-2" placeholder="Search users..." type="text"/>
+<div id="search-results" class="hidden mb-4 bg-white border border-border-light rounded-lg max-h-60 overflow-y-auto"></div>
+<div id="conversations-list"></div>
 </aside>
 <main class="flex flex-1 flex-col">
-<div class="flex-1">
-</div>
+<div id="chat-header" class="border-b border-border-light px-6 py-4 font-bold"></div>
+<div id="messages-container" class="flex-1 overflow-y-auto p-6"></div>
 <div class="border-t border-border-light bg-white p-4">
 <div class="relative">
-<input class="w-full rounded-lg border-2 border-border-light bg-transparent py-3 pl-4 pr-12 text-text-dark placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-0" placeholder="Type a message..." type="text"/>
-<button class="absolute inset-y-0 right-0 flex items-center pr-4 text-primary">
+<input id="message-input" class="w-full rounded-lg border-2 border-border-light bg-transparent py-3 pl-4 pr-12 text-text-dark placeholder-gray-400 focus:border-primary focus:outline-none focus:ring-0" placeholder="Type a message..." type="text"/>
+<button id="send-btn" class="absolute inset-y-0 right-0 flex items-center pr-4 text-primary">
 <svg class="feather feather-send" fill="none" height="24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
 <line x1="22" x2="11" y1="2" y2="13"></line>
 <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
@@ -69,10 +75,139 @@
 </main>
 </div>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
-<script src="api.js"></script>
-<script src="websocket.js"></script>
-<script src="chat.js"></script>
+<script>
+if (!sessionStorage.getItem('jwt_token')) {
+    window.location.href = 'login.html';
+}
 
+let stompClient = null;
+let currentChatUserId = null;
+const token = sessionStorage.getItem('jwt_token');
+const currentUser = JSON.parse(sessionStorage.getItem('current_user'));
+
+// Connect to WebSocket
+function connect() {
+    const socket = new SockJS('http://localhost:8080/ws');
+    stompClient = Stomp.over(socket);
+    
+    stompClient.connect({}, function(frame) {
+        console.log('Connected: ' + frame);
+    });
+}
+
+async function api(endpoint, method = 'GET', body = null) {
+    const headers = { 'Content-Type': 'application/json' };
+    const res = await fetch(`http://localhost:8080/api${endpoint}`, { 
+        method, 
+        headers, 
+        body: body ? JSON.stringify(body) : null 
+    });
+    if (!res.ok) throw new Error('API call failed');
+    return res.json();
+}
+
+let currentSubscription = null;
+
+async function openChat(userId, username) {
+    // Unsubscribe from previous chat
+    if (currentSubscription) {
+        currentSubscription.unsubscribe();
+    }
+    
+    currentChatUserId = userId;
+    document.getElementById('chat-header').textContent = username;
+    
+    // Subscribe to this specific conversation
+    const topicName = "/topic/messages/" + currentUser.id + "." + userId;
+    console.log("Subscribing to:", topicName);
+    
+    currentSubscription = stompClient.subscribe(topicName, function(message) {
+        console.log('Received message:', message.body);
+        const msg = JSON.parse(message.body);
+        addMessage({
+            content: msg.content,
+            sender: { id: msg.senderId }
+        }, msg.senderId == currentUser.id);
+    });
+    
+    // Load message history
+    try {
+        const msgs = await api(`/chat/messages/${userId}?currentUserId=${currentUser.id}`);
+        const container = document.getElementById('messages-container');
+        container.innerHTML = '';
+        msgs.forEach(m => addMessage(m, m.sender.id === currentUser.id));
+    } catch (e) {
+        console.error(e);
+    }
+}
+
+function addMessage(msg, isSent) {
+    const container = document.getElementById('messages-container');
+    const div = document.createElement('div');
+    div.className = `mb-4 ${isSent ? 'text-right' : 'text-left'}`;
+    div.innerHTML = `<div class="inline-block max-w-md px-4 py-2 rounded-lg ${isSent ? 'bg-primary text-black' : 'bg-gray-200'}"><p>${msg.content}</p></div>`;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
+
+function sendMessage() {
+    const input = document.getElementById('message-input');
+    const content = input.value.trim();
+    if (!content || !currentChatUserId) return;
+    
+    if (stompClient && stompClient.connected) {
+        const message = {
+            senderId: currentUser.id,
+            receiverId: currentChatUserId,
+            content: content
+        };
+        
+        stompClient.send("/app/chat", {}, JSON.stringify(message));
+        
+        input.value = '';
+    } else {
+        alert('Not connected to chat server');
+    }
+}
+
+document.getElementById('send-btn').addEventListener('click', sendMessage);
+
+document.getElementById('message-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
+
+let searchTimeout;
+document.getElementById('user-search').addEventListener('input', (e) => {
+    clearTimeout(searchTimeout);
+    const query = e.target.value.trim();
+    if (query.length < 2) {
+        document.getElementById('search-results').classList.add('hidden');
+        return;
+    }
+    searchTimeout = setTimeout(async () => {
+        try {
+            const users = await api(`/users/search?query=${query}`);
+            const results = document.getElementById('search-results');
+            results.innerHTML = users.length ? '' : '<p class="p-4 text-gray-500">No users found</p>';
+            users.forEach(u => {
+                if (u.id !== currentUser.id) {
+                    const div = document.createElement('div');
+                    div.className = 'p-4 hover:bg-gray-100 cursor-pointer border-b';
+                    div.innerHTML = `<p class="font-semibold">${u.username}</p><p class="text-sm text-gray-600">${u.email}</p>`;
+                    div.onclick = () => {
+                        openChat(u.id, u.username);
+                        results.classList.add('hidden');
+                        document.getElementById('user-search').value = '';
+                    };
+                    results.appendChild(div);
+                }
+            });
+            results.classList.remove('hidden');
+        } catch (e) {
+            console.error(e);
+        }
+    }, 300);
+});
+connect();
+</script>
 </body></html>
