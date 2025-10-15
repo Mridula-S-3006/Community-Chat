@@ -1,9 +1,19 @@
 package com.communitychat.model.entity;
 
-import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "events")
@@ -16,28 +26,43 @@ public class Event {
     @Column(nullable = false)
     private String title;
 
+    @Column(length = 1000)
     private String description;
 
     @ManyToOne
-    @JoinColumn(name = "creator_id", nullable = false)
-    private User creator;
+    @JoinColumn(name = "organizer_id", nullable = false)
+    private User organizer;
 
-    private LocalDateTime startTime;
-    private LocalDateTime endTime;
+    @ManyToOne
+    @JoinColumn(name = "group_id", nullable = false)
+    private Group group;
 
-    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL)
+    @Column(nullable = false)
+    private LocalDateTime dateTime;
+
+    private String location;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EventResponse> responses = new HashSet<>();
 
-    public Event() {}
-
-    public Event(String title, String description, User creator, LocalDateTime startTime, LocalDateTime endTime) {
-        this.title = title;
-        this.description = description;
-        this.creator = creator;
-        this.startTime = startTime;
-        this.endTime = endTime;
+    public Event() {
+        this.createdAt = LocalDateTime.now();
     }
 
+    public Event(String title, String description, User organizer, Group group, LocalDateTime dateTime, String location) {
+        this.title = title;
+        this.description = description;
+        this.organizer = organizer;
+        this.group = group;
+        this.dateTime = dateTime;
+        this.location = location;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    // Getters and Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -47,14 +72,20 @@ public class Event {
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
 
-    public User getCreator() { return creator; }
-    public void setCreator(User creator) { this.creator = creator; }
+    public User getOrganizer() { return organizer; }
+    public void setOrganizer(User organizer) { this.organizer = organizer; }
 
-    public LocalDateTime getStartTime() { return startTime; }
-    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public Group getGroup() { return group; }
+    public void setGroup(Group group) { this.group = group; }
 
-    public LocalDateTime getEndTime() { return endTime; }
-    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+    public LocalDateTime getDateTime() { return dateTime; }
+    public void setDateTime(LocalDateTime dateTime) { this.dateTime = dateTime; }
+
+    public String getLocation() { return location; }
+    public void setLocation(String location) { this.location = location; }
+
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public Set<EventResponse> getResponses() { return responses; }
     public void setResponses(Set<EventResponse> responses) { this.responses = responses; }

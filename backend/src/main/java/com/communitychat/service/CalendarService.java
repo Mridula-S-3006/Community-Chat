@@ -1,13 +1,16 @@
 package com.communitychat.service;
 
 import com.communitychat.model.entity.Event;
+import com.communitychat.model.entity.GroupMember;
 import com.communitychat.model.entity.User;
 import com.communitychat.repository.EventRepository;
+import com.communitychat.repository.GroupMemberRepository;
 import com.communitychat.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,11 +20,15 @@ public class CalendarService {
 
     private final EventRepository eventRepository;
     private final UserRepository userRepository;
+    private final GroupMemberRepository groupMemberRepository;
 
     @Autowired
-    public CalendarService(EventRepository eventRepository, UserRepository userRepository) {
+    public CalendarService(EventRepository eventRepository, 
+                          UserRepository userRepository,
+                          GroupMemberRepository groupMemberRepository) {
         this.eventRepository = eventRepository;
         this.userRepository = userRepository;
+        this.groupMemberRepository = groupMemberRepository;
     }
 
     public List<Event> getUpcomingEvents(Long userId) throws Exception {
@@ -31,8 +38,19 @@ public class CalendarService {
         }
 
         LocalDateTime now = LocalDateTime.now();
-        return eventRepository.findByCreator(user.get()).stream()
-                .filter(event -> event.getStartTime().isAfter(now))
+        
+        // Get all events from groups the user is in
+        List<GroupMember> memberships = groupMemberRepository.findByUser(user.get());
+        List<Event> allEvents = new ArrayList<>();
+        
+        for (GroupMember gm : memberships) {
+            allEvents.addAll(eventRepository.findByGroup(gm.getGroup()));
+        }
+        
+        // Filter upcoming events only
+        return allEvents.stream()
+                .filter(event -> event.getDateTime().isAfter(now))
+                .sorted((e1, e2) -> e1.getDateTime().compareTo(e2.getDateTime()))
                 .collect(Collectors.toList());
     }
 
@@ -42,8 +60,18 @@ public class CalendarService {
             throw new Exception("User not found");
         }
 
-        return eventRepository.findByCreator(user.get()).stream()
-                .filter(event -> !event.getStartTime().isBefore(from) && !event.getEndTime().isAfter(to))
+        // Get all events from groups the user is in
+        List<GroupMember> memberships = groupMemberRepository.findByUser(user.get());
+        List<Event> allEvents = new ArrayList<>();
+        
+        for (GroupMember gm : memberships) {
+            allEvents.addAll(eventRepository.findByGroup(gm.getGroup()));
+        }
+        
+        // Filter events in date range
+        return allEvents.stream()
+                .filter(event -> !event.getDateTime().isBefore(from) && !event.getDateTime().isAfter(to))
+                .sorted((e1, e2) -> e1.getDateTime().compareTo(e2.getDateTime()))
                 .collect(Collectors.toList());
     }
 }

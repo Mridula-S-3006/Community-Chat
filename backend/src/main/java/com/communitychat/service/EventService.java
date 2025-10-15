@@ -2,76 +2,97 @@ package com.communitychat.service;
 
 import com.communitychat.model.entity.Event;
 import com.communitychat.model.entity.EventResponse;
+import com.communitychat.model.entity.Group;
+import com.communitychat.model.entity.GroupMember;
 import com.communitychat.model.entity.User;
 import com.communitychat.repository.EventRepository;
 import com.communitychat.repository.EventResponseRepository;
+import com.communitychat.repository.GroupRepository;
+import com.communitychat.repository.GroupMemberRepository;
 import com.communitychat.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class EventService {
 
     private final EventRepository eventRepository;
     private final EventResponseRepository eventResponseRepository;
+    private final GroupRepository groupRepository;
     private final UserRepository userRepository;
+    private final GroupMemberRepository groupMemberRepository;
 
     @Autowired
-    public EventService(EventRepository eventRepository, EventResponseRepository eventResponseRepository, UserRepository userRepository) {
+    public EventService(EventRepository eventRepository,
+                        EventResponseRepository eventResponseRepository,
+                        GroupRepository groupRepository,
+                        UserRepository userRepository,
+                        GroupMemberRepository groupMemberRepository) {
         this.eventRepository = eventRepository;
         this.eventResponseRepository = eventResponseRepository;
+        this.groupRepository = groupRepository;
         this.userRepository = userRepository;
+        this.groupMemberRepository = groupMemberRepository;
     }
 
-    public Event createEvent(Long creatorId, String title, String description, java.time.LocalDateTime startTime, java.time.LocalDateTime endTime) throws Exception {
-        Optional<User> creator = userRepository.findById(creatorId);
-        if (!creator.isPresent()) {
-            throw new Exception("Creator not found");
-        }
+    public Event createEvent(Long organizerId, Long groupId, String title,
+                             String description, LocalDateTime dateTime, String location) throws Exception {
+        User organizer = userRepository.findById(organizerId)
+                .orElseThrow(() -> new Exception("Organizer not found"));
+        Group group = groupRepository.findById(groupId)
+                .orElseThrow(() -> new Exception("Group not found"));
 
         Event event = new Event();
-        event.setCreator(creator.get());
         event.setTitle(title);
         event.setDescription(description);
-        event.setStartTime(startTime);
-        event.setEndTime(endTime);
+        event.setOrganizer(organizer);
+        event.setGroup(group);
+        event.setDateTime(dateTime);
+        event.setLocation(location);
+        event.setCreatedAt(LocalDateTime.now());
 
         return eventRepository.save(event);
     }
 
     public List<Event> getUserEvents(Long userId) throws Exception {
-        Optional<User> user = userRepository.findById(userId);
-        if (!user.isPresent()) {
-            throw new Exception("User not found");
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new Exception("User not found"));
+        
+        // Get all groups the user is a member of
+        List<GroupMember> memberships = groupMemberRepository.findByUser(user);
+        
+        List<Event> events = new ArrayList<>();
+        for (GroupMember gm : memberships) {
+            events.addAll(eventRepository.findByGroup(gm.getGroup()));
         }
-
-        return eventRepository.findByCreator(user.get());
+        
+        return events;
     }
 
     public EventResponse respondToEvent(Long eventId, Long userId, String response) throws Exception {
-        Optional<Event> event = eventRepository.findById(eventId);
-        Optional<User> user = userRepository.findById(userId);
-        if (!event.isPresent() || !user.isPresent()) {
-            throw new Exception("Event or user not found");
-        }
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new Exception("Event not found"));
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new Exception("User not found"));
 
-        Optional<EventResponse> existing = eventResponseRepository.findByEventAndUser(event.get(), user.get());
-        EventResponse er = existing.orElse(new EventResponse());
-        er.setEvent(event.get());
-        er.setUser(user.get());
+        EventResponse er = eventResponseRepository
+                .findByEventAndUser(event, user)
+                .orElse(new EventResponse());
+
+        er.setEvent(event);
+        er.setUser(user);
         er.setResponse(response);
 
         return eventResponseRepository.save(er);
     }
 
     public List<EventResponse> getEventResponses(Long eventId) throws Exception {
-        Optional<Event> event = eventRepository.findById(eventId);
-        if (!event.isPresent()) {
-            throw new Exception("Event not found");
-        }
-        return eventResponseRepository.findByEvent(event.get());
+        Event event = eventRepository.findById(eventId)
+                .orElseThrow(() -> new Exception("Event not found"));
+        return eventResponseRepository.findByEvent(event);
     }
 }

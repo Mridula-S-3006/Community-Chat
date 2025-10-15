@@ -110,9 +110,15 @@ if (!sessionStorage.getItem('jwt_token')) window.location.href = 'login.html';
 let editingEventId = null;
 const token = sessionStorage.getItem('jwt_token');
 
+const currentUser = JSON.parse(sessionStorage.getItem('current_user'));
+
 async function api(endpoint, method = 'GET', body = null) {
     const res = await fetch(`http://localhost:8080/api${endpoint}`, {
-        method, headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+        method, 
+        headers: { 
+            'Content-Type': 'application/json', 
+            'Authorization': `Bearer ${token}` 
+        },
         body: body ? JSON.stringify(body) : null
     });
     if (!res.ok) throw new Error('API failed');
@@ -154,7 +160,8 @@ async function loadEvents() {
 
 async function loadGroups() {
     try {
-        const groups = await api('/groups');
+        const currentUser = JSON.parse(sessionStorage.getItem('current_user'));
+        const groups = await api(`/groups/user/${currentUser.id}`);  // CHANGED THIS LINE
         const select = document.getElementById('event-group-select');
         const filter = document.getElementById('group-filter');
         
@@ -165,7 +172,9 @@ async function loadGroups() {
             select.innerHTML += `<option value="${g.id}">${g.name}</option>`;
             filter.innerHTML += `<option value="${g.id}">${g.name}</option>`;
         });
-    } catch (e) {}
+    } catch (e) {
+        console.error('Failed to load groups:', e);
+    }
 }
 
 document.getElementById('create-event-btn').onclick = () => {
@@ -185,8 +194,9 @@ document.getElementById('event-form').onsubmit = async (e) => {
         title: document.getElementById('event-title').value,
         description: document.getElementById('event-description').value,
         dateTime: document.getElementById('event-datetime').value,
-        location: document.getElementById('event-location').value,
+        location: document.getElementById('event-location').value || '',
         groupId: parseInt(document.getElementById('event-group-select').value)
+        // REMOVED organizerId - backend gets it from session
     };
     
     try {
@@ -198,6 +208,7 @@ document.getElementById('event-form').onsubmit = async (e) => {
         document.getElementById('event-form-modal').classList.add('hidden');
         loadEvents();
     } catch (err) {
+        console.error('Error saving event:', err);
         alert('Failed to save event');
     }
 };

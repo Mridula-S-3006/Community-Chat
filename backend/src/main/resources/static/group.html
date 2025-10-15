@@ -88,6 +88,7 @@ const currentUser = JSON.parse(sessionStorage.getItem('current_user')) || {};
 let currentGroupId = null;
 let stompClient = null;
 let selectedMembers = [];
+let groupSubscription = null;
 
 async function api(endpoint, method = 'GET', body = null) {
     const options = { method, headers: { 'Authorization': `Bearer ${token}` } };
@@ -101,15 +102,14 @@ function connectWS() {
     const socket = new SockJS('http://localhost:8080/ws');
     stompClient = Stomp.over(socket);
     stompClient.connect({ 'Authorization': `Bearer ${token}` }, () => {
-        if (currentGroupId) {
-            stompClient.subscribe(`/topic/group/${currentGroupId}`, (msg) => addGroupMessage(JSON.parse(msg.body), false));
-        }
+        console.log('WebSocket connected');
+    }, (error) => {
+        console.error('WebSocket connection error:', error);
     });
 }
 
 async function loadGroups() {
     try {
-        // Updated endpoint to match typical backend mapping
         const groups = await api(`/groups/user/${currentUser.id}`);
         const list = document.getElementById('groups-list');
         list.innerHTML = groups.length ? '' : '<p class="text-gray-500 p-4">No groups yet</p>';
@@ -132,8 +132,17 @@ async function openGroup(id, name) {
     currentGroupId = id;
     document.getElementById('group-header').textContent = name;
     
+    if (groupSubscription) {
+        groupSubscription.unsubscribe();
+        groupSubscription = null;
+    }
+    
     if (stompClient && stompClient.connected) {
-        stompClient.subscribe(`/topic/group/${id}`, (msg) => addGroupMessage(JSON.parse(msg.body), false));
+        groupSubscription = stompClient.subscribe(`/topic/group/${id}`, (msg) => {
+            const data = JSON.parse(msg.body);
+            const isSent = data.senderId === currentUser.id;
+            addGroupMessage(data, isSent);
+        });
     }
     
     try {
@@ -148,10 +157,19 @@ async function openGroup(id, name) {
 
 function addGroupMessage(msg, isSent) {
     const container = document.getElementById('group-messages-container');
+    
+    const messageId = `msg-${msg.id || Date.now()}-${msg.senderId}`;
+    if (document.getElementById(messageId)) {
+        return;
+    }
+    
     const div = document.createElement('div');
+    div.id = messageId;
     div.className = `mb-4 ${isSent ? 'text-right' : 'text-left'}`;
+    const content = msg.content || '';
+    const username = msg.senderUsername || 'Unknown';
     div.innerHTML = `<div class="inline-block max-w-md px-4 py-2 rounded-lg ${isSent ? 'bg-primary text-black' : 'bg-gray-200'}">
-        ${!isSent ? `<p class="text-xs font-bold mb-1">${msg.senderUsername}</p>` : ''}<p>${msg.content}</p>
+        ${!isSent ? `<p class="text-xs font-bold mb-1">${username}</p>` : ''}<p>${content}</p>
     </div>`;
     container.appendChild(div);
     container.scrollTop = container.scrollHeight;
@@ -192,10 +210,9 @@ async function loadRSVPs(eventId) {
 document.getElementById('send-group-btn').addEventListener('click', () => {
     const input = document.getElementById('group-message-input');
     const content = input.value.trim();
-    if (!content || !currentGroupId) return;
+    if (!content || !currentGroupId || !stompClient?.connected) return;
     const msg = { senderId: currentUser.id, senderUsername: currentUser.username, groupId: currentGroupId, content, timestamp: new Date().toISOString() };
     stompClient.send(`/app/group/${currentGroupId}`, {}, JSON.stringify(msg));
-    addGroupMessage(msg, true);
     input.value = '';
 });
 
@@ -205,7 +222,17 @@ document.getElementById('cancel-create-btn').onclick = () => document.getElement
 document.getElementById('confirm-create-btn').onclick = async () => {
     const name = document.getElementById('new-group-name').value.trim();
     if(!name) return alert('Enter group name');
-    try { await api('/groups', 'POST', { name, memberIds: selectedMembers }); document.getElementById('create-group-modal').classList.add('hidden'); loadGroups(); } catch(e){ alert('Failed to create group'); }
+    try { 
+        await api('/groups', 'POST', { 
+            name, 
+            ownerId: currentUser.id,
+            memberIds: selectedMembers 
+        }); 
+        document.getElementById('create-group-modal').classList.add('hidden'); 
+        loadGroups(); 
+    } catch(e){ 
+        alert('Failed to create group'); 
+    }
 };
 
 let searchTimeout;
