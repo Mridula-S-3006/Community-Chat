@@ -1,5 +1,23 @@
 package com.communitychat.controller;
 
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.communitychat.model.entity.Event;
 import com.communitychat.model.entity.EventResponse;
 import com.communitychat.model.entity.GroupMember;
@@ -9,15 +27,6 @@ import com.communitychat.repository.GroupMemberRepository;
 import com.communitychat.repository.GroupRepository;
 import com.communitychat.repository.UserRepository;
 import com.communitychat.service.EventService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/events")
@@ -53,8 +62,12 @@ public class EventController {
             String description = payload.get("description").toString();
             LocalDateTime dateTime = LocalDateTime.parse(payload.get("dateTime").toString());
             String location = payload.getOrDefault("location", "").toString();
+            Integer reminderMinutes = payload.containsKey("reminderMinutes") && !payload.get("reminderMinutes").toString().isEmpty() ? 
+                Integer.valueOf(payload.get("reminderMinutes").toString()) : null;
 
             Event event = eventService.createEvent(organizerId, groupId, title, description, dateTime, location);
+            event.setReminderMinutes(reminderMinutes);
+            event = eventRepository.save(event);
             
             Map<String, Object> response = new HashMap<>();
             response.put("id", event.getId());
@@ -64,6 +77,7 @@ public class EventController {
             response.put("location", event.getLocation());
             response.put("groupId", event.getGroup().getId());
             response.put("groupName", event.getGroup().getName());
+            response.put("reminderMinutes", event.getReminderMinutes());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -100,6 +114,7 @@ public class EventController {
                 map.put("groupId", e.getGroup().getId());
                 map.put("groupName", e.getGroup().getName());
                 map.put("organizerId", e.getOrganizer().getId());
+                map.put("reminderMinutes", e.getReminderMinutes());
                 return map;
             }).collect(Collectors.toList());
             
@@ -121,6 +136,12 @@ public class EventController {
             event.setDateTime(LocalDateTime.parse(payload.get("dateTime").toString()));
             event.setLocation(payload.getOrDefault("location", "").toString());
             
+            if (payload.containsKey("reminderMinutes") && !payload.get("reminderMinutes").toString().isEmpty()) {
+                event.setReminderMinutes(Integer.valueOf(payload.get("reminderMinutes").toString()));
+            } else {
+                event.setReminderMinutes(null);
+            }
+            
             if (payload.containsKey("groupId")) {
                 Long groupId = Long.valueOf(payload.get("groupId").toString());
                 event.setGroup(groupRepository.findById(groupId)
@@ -137,6 +158,7 @@ public class EventController {
             response.put("location", updated.getLocation());
             response.put("groupId", updated.getGroup().getId());
             response.put("groupName", updated.getGroup().getName());
+            response.put("reminderMinutes", updated.getReminderMinutes());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {

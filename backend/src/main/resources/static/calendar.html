@@ -219,5 +219,50 @@ document.getElementById('next-month-btn').onclick = () => {
 };
 
 loadEvents();
+// Request notification permission on page load
+if ("Notification" in window && Notification.permission === "default") {
+    Notification.requestPermission();
+}
+
+function showNotification(title, body) {
+    if (Notification.permission === "granted") {
+        new Notification(title, {
+            body: body,
+            icon: '🔔',
+            requireInteraction: false,
+            tag: 'meethive-reminder'
+        });
+    }
+}
+
+// Check for reminders every minute
+async function checkReminders() {
+    if (Notification.permission !== "granted") return;
+    
+    try {
+        const now = new Date();
+        
+        allEvents.forEach(event => {
+            if (!event.reminderMinutes) return;
+            
+            const eventTime = new Date(event.dateTime);
+            const timeDiff = eventTime - now;
+            const minutesUntil = Math.floor(timeDiff / 60000);
+            
+            // Show notification at exact reminder time (within 1 minute window)
+            if (minutesUntil === event.reminderMinutes || (minutesUntil === event.reminderMinutes - 1 && timeDiff % 60000 > 30000)) {
+                showNotification(
+                    `🔔 ${event.title}`,
+                    `Starting in ${event.reminderMinutes} minutes at ${event.location || 'your group'}!`
+                );
+            }
+        });
+    } catch (e) {
+        console.error('Failed to check reminders:', e);
+    }
+}
+
+setInterval(checkReminders, 60000);
+checkReminders();
 </script>
 </body></html>

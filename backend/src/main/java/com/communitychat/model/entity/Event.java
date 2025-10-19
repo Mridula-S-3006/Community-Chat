@@ -48,6 +48,12 @@ public class Event {
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<EventResponse> responses = new HashSet<>();
 
+    @Column(name = "reminder_minutes")
+private Integer reminderMinutes;
+
+public Integer getReminderMinutes() { return reminderMinutes; }
+public void setReminderMinutes(Integer reminderMinutes) { this.reminderMinutes = reminderMinutes; }
+
     public Event() {
         this.createdAt = LocalDateTime.now();
     }
@@ -89,4 +95,6 @@ public class Event {
 
     public Set<EventResponse> getResponses() { return responses; }
     public void setResponses(Set<EventResponse> responses) { this.responses = responses; }
+
+    
 }

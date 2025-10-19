@@ -96,6 +96,17 @@
 <option value="">Select a group</option>
 </select>
 </div>
+<div>
+<label class="block text-sm font-bold mb-2">🔔 Reminder</label>
+<select id="event-reminder" class="w-full border rounded-lg px-3 py-2">
+<option value="">No reminder</option>
+<option value="5">5 minutes before</option>
+<option value="15">15 minutes before</option>
+<option value="30">30 minutes before</option>
+<option value="60">1 hour before</option>
+<option value="1440">1 day before</option>
+</select>
+</div>
 <div class="flex gap-2">
 <button type="submit" class="flex-1 bg-primary text-black px-4 py-2 rounded-lg font-bold">Save</button>
 <button type="button" id="cancel-event-btn" class="flex-1 bg-gray-200 text-black px-4 py-2 rounded-lg font-bold">Cancel</button>
@@ -109,7 +120,6 @@ if (!sessionStorage.getItem('jwt_token')) window.location.href = 'login.html';
 
 let editingEventId = null;
 const token = sessionStorage.getItem('jwt_token');
-
 const currentUser = JSON.parse(sessionStorage.getItem('current_user'));
 
 async function api(endpoint, method = 'GET', body = null) {
@@ -134,12 +144,14 @@ async function loadEvents() {
             const div = document.createElement('div');
             div.className = 'event-card p-6 bg-white rounded-xl border shadow-sm';
             div.dataset.groupId = e.groupId;
+            const reminderText = e.reminderMinutes ? `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded ml-2">🔔 ${e.reminderMinutes} min reminder</span>` : '';
             div.innerHTML = `
                 <div class="flex justify-between items-start">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-2">
                             <h3 class="text-xl font-bold">${e.title}</h3>
                             <span class="text-xs bg-primary px-2 py-1 rounded">${e.groupName}</span>
+                            ${reminderText}
                         </div>
                         <p class="text-gray-600 mb-2">${new Date(e.dateTime).toLocaleString()}</p>
                         ${e.location ? `<p class="text-sm text-gray-500 mb-2">📍 ${e.location}</p>` : ''}
@@ -155,13 +167,14 @@ async function loadEvents() {
             div.querySelector('.delete-btn').onclick = () => deleteEvent(e.id);
             list.appendChild(div);
         });
-    } catch (e) {}
+    } catch (e) {
+        console.error('Failed to load events:', e);
+    }
 }
 
 async function loadGroups() {
     try {
-        const currentUser = JSON.parse(sessionStorage.getItem('current_user'));
-        const groups = await api(`/groups/user/${currentUser.id}`);  // CHANGED THIS LINE
+        const groups = await api(`/groups/user/${currentUser.id}`);
         const select = document.getElementById('event-group-select');
         const filter = document.getElementById('group-filter');
         
@@ -190,13 +203,14 @@ document.getElementById('cancel-event-btn').onclick = () => {
 
 document.getElementById('event-form').onsubmit = async (e) => {
     e.preventDefault();
+    const reminderValue = document.getElementById('event-reminder').value;
     const data = {
         title: document.getElementById('event-title').value,
         description: document.getElementById('event-description').value,
         dateTime: document.getElementById('event-datetime').value,
         location: document.getElementById('event-location').value || '',
-        groupId: parseInt(document.getElementById('event-group-select').value)
-        // REMOVED organizerId - backend gets it from session
+        groupId: parseInt(document.getElementById('event-group-select').value),
+        reminderMinutes: reminderValue ? parseInt(reminderValue) : null
     };
     
     try {
@@ -221,6 +235,7 @@ function editEvent(event) {
     document.getElementById('event-datetime').value = event.dateTime.slice(0, 16);
     document.getElementById('event-location').value = event.location || '';
     document.getElementById('event-group-select').value = event.groupId;
+    document.getElementById('event-reminder').value = event.reminderMinutes || '';
     document.getElementById('event-form-modal').classList.remove('hidden');
 }
 
