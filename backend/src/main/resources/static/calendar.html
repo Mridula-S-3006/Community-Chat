@@ -36,6 +36,27 @@
         'GRAD' 0,
         'opsz' 24
     }
+    .day-btn {
+      position: relative;
+    }
+    .event-dot {
+      position: absolute;
+      bottom: 2px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+    .event-dot.past {
+      background-color: #9ca3af;
+    }
+    .event-dot.today {
+      background-color: #ef4444;
+    }
+    .event-dot.upcoming {
+      background-color: #3b82f6;
+    }
   </style>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
 </head>
@@ -63,29 +84,46 @@
 <div class="w-full max-w-4xl">
 <div class="mb-8 text-center">
 <h2 class="text-3xl font-bold text-slate-900">MeetHive Calendar</h2>
+<p class="text-sm text-gray-600 mt-2">Events from your groups</p>
 </div>
 <div class="rounded-xl bg-background-light p-4 shadow-lg shadow-primary/10 sm:p-6">
 <div class="mb-4 flex items-center justify-between">
-<button id="prev-month-btn" class="rounded-full p-2 text-slate-600 hover:bg-primary/20">
+<button id="prev-month-btn" class="rounded-full p-2 text-slate-600 hover:bg-primary/20 transition-colors">
 <span class="material-symbols-outlined">chevron_left</span>
 </button>
 <h3 id="month-year" class="text-lg font-bold text-slate-900"></h3>
-<button id="next-month-btn" class="rounded-full p-2 text-slate-600 hover:bg-primary/20">
+<button id="next-month-btn" class="rounded-full p-2 text-slate-600 hover:bg-primary/20 transition-colors">
 <span class="material-symbols-outlined">chevron_right</span>
 </button>
 </div>
 <div id="calendar-grid" class="grid grid-cols-7 gap-1 text-center"></div>
+</div>
+<div class="mt-4 text-center text-sm text-gray-600">
+<div class="inline-flex items-center gap-6">
+<span class="inline-flex items-center gap-2">
+<span class="w-3 h-3 bg-gray-400 rounded-full"></span>
+Past events
+</span>
+<span class="inline-flex items-center gap-2">
+<span class="w-3 h-3 bg-red-500 rounded-full"></span>
+Today's events
+</span>
+<span class="inline-flex items-center gap-2">
+<span class="w-3 h-3 bg-blue-500 rounded-full"></span>
+Upcoming events
+</span>
+</div>
 </div>
 </div>
 </main>
 </div>
 </div>
 
-<div id="day-events-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+<div id="day-events-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
 <div class="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
 <div class="flex justify-between items-center mb-4">
 <h3 id="modal-day-title" class="text-2xl font-bold"></h3>
-<button id="close-modal-btn" class="text-gray-500 hover:text-black">✕</button>
+<button id="close-modal-btn" class="text-gray-500 hover:text-black text-2xl">&times;</button>
 </div>
 <div id="modal-events-list"></div>
 </div>
@@ -94,26 +132,57 @@
 <script>
 if (!sessionStorage.getItem('jwt_token')) window.location.href = 'login.html';
 
+const token = sessionStorage.getItem('jwt_token');
+const currentUser = JSON.parse(sessionStorage.getItem('current_user')) || {};
+
 let currentMonth = new Date().getMonth();
 let currentYear = new Date().getFullYear();
 let allEvents = [];
-const token = sessionStorage.getItem('jwt_token');
+let notifiedEvents = new Set();
 
 async function api(endpoint) {
     const res = await fetch(`http://localhost:8080/api${endpoint}`, {
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: { 
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+        }
     });
-    if (!res.ok) throw new Error('API failed');
+    if (!res.ok) throw new Error(`API failed: ${res.status}`);
     return res.json();
 }
 
 async function loadEvents() {
     try {
-        allEvents = await api('/events/user');
+        allEvents = await api(`/events/user?userId=${currentUser.id}`);
+        console.log('Loaded events:', allEvents.length);
         renderCalendar();
     } catch (e) {
-        console.error('Failed to load events');
+        console.error('Failed to load events:', e);
+        allEvents = [];
+        renderCalendar();
     }
+}
+
+function getEventStatus(eventDateTime) {
+    const now = new Date();
+    const eventDate = new Date(eventDateTime);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const eventDay = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+    
+    if (eventDay < today) {
+        return 'past';
+    } else if (eventDay.getTime() === today.getTime()) {
+        return 'today';
+    } else {
+        return 'upcoming';
+    }
+}
+
+function getEventsForDate(day) {
+    return allEvents.filter(e => {
+        const d = new Date(e.dateTime);
+        return d.getFullYear() === currentYear && d.getMonth() === currentMonth && d.getDate() === day;
+    });
 }
 
 function renderCalendar() {
@@ -147,14 +216,24 @@ function renderCalendar() {
         
         const btn = document.createElement('button');
         const isToday = isCurrentMonth && day === today.getDate();
-        btn.className = `flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium ${isToday ? 'bg-primary text-black font-bold' : 'text-slate-700 hover:bg-primary/20'}`;
+        btn.className = `day-btn flex h-10 w-10 items-center justify-center rounded-full text-sm font-medium transition-colors ${isToday ? 'bg-primary text-black font-bold' : 'text-slate-700 hover:bg-primary/20'}`;
         btn.textContent = day;
         
         const dayEvents = getEventsForDate(day);
         if (dayEvents.length > 0) {
-            btn.style.position = 'relative';
+            const statuses = dayEvents.map(e => getEventStatus(e.dateTime));
+            let dotClass = 'event-dot ';
+            
+            if (statuses.includes('today')) {
+                dotClass += 'today';
+            } else if (statuses.includes('upcoming')) {
+                dotClass += 'upcoming';
+            } else {
+                dotClass += 'past';
+            }
+            
             const dot = document.createElement('span');
-            dot.className = 'absolute bottom-1 w-2 h-2 bg-blue-500 rounded-full';
+            dot.className = dotClass;
             btn.appendChild(dot);
         }
         
@@ -162,13 +241,6 @@ function renderCalendar() {
         dayDiv.appendChild(btn);
         grid.appendChild(dayDiv);
     }
-}
-
-function getEventsForDate(day) {
-    return allEvents.filter(e => {
-        const d = new Date(e.dateTime);
-        return d.getFullYear() === currentYear && d.getMonth() === currentMonth && d.getDate() === day;
-    });
 }
 
 function showDayEvents(day, events) {
@@ -180,13 +252,34 @@ function showDayEvents(day, events) {
     
     events.forEach(e => {
         const div = document.createElement('div');
-        div.className = 'p-4 bg-white border rounded-lg mb-3';
+        const status = getEventStatus(e.dateTime);
+        const isPast = status === 'past';
+        
+        div.className = `p-4 bg-white border rounded-lg mb-3 hover:shadow-md transition-shadow ${isPast ? 'opacity-60' : ''}`;
+        
+        const eventDate = new Date(e.dateTime);
+        const timeStr = eventDate.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+        });
+        
+        let statusBadge = '';
+        if (status === 'past') {
+            statusBadge = '<span class="text-xs bg-gray-200 text-gray-600 px-2 py-1 rounded ml-2">Past</span>';
+        } else if (status === 'today') {
+            statusBadge = '<span class="text-xs bg-red-500 text-white px-2 py-1 rounded ml-2 animate-pulse">🔴 Today</span>';
+        } else {
+            statusBadge = '<span class="text-xs bg-blue-500 text-white px-2 py-1 rounded ml-2">Upcoming</span>';
+        }
+        
         div.innerHTML = `
             <div class="flex items-center gap-2 mb-1">
-                <h4 class="font-bold">${e.title}</h4>
-                <span class="text-xs bg-primary px-2 py-1 rounded">${e.groupName}</span>
+                <h4 class="font-bold text-lg">${e.title}</h4>
+                <span class="text-xs bg-primary px-2 py-1 rounded font-medium">${e.groupName || 'Group'}</span>
+                ${statusBadge}
             </div>
-            <p class="text-sm text-gray-600">${new Date(e.dateTime).toLocaleTimeString()}</p>
+            <p class="text-sm text-gray-600">🕐 ${timeStr}</p>
             ${e.location ? `<p class="text-sm text-gray-500 mt-1">📍 ${e.location}</p>` : ''}
             <p class="text-sm text-gray-700 mt-2">${e.description}</p>
         `;
@@ -218,51 +311,91 @@ document.getElementById('next-month-btn').onclick = () => {
     renderCalendar();
 };
 
-loadEvents();
-// Request notification permission on page load
-if ("Notification" in window && Notification.permission === "default") {
-    Notification.requestPermission();
-}
-
-function showNotification(title, body) {
-    if (Notification.permission === "granted") {
-        new Notification(title, {
-            body: body,
-            icon: '🔔',
-            requireInteraction: false,
-            tag: 'meethive-reminder'
-        });
-    }
-}
-
-// Check for reminders every minute
-async function checkReminders() {
-    if (Notification.permission !== "granted") return;
-    
-    try {
-        const now = new Date();
-        
-        allEvents.forEach(event => {
-            if (!event.reminderMinutes) return;
-            
-            const eventTime = new Date(event.dateTime);
-            const timeDiff = eventTime - now;
-            const minutesUntil = Math.floor(timeDiff / 60000);
-            
-            // Show notification at exact reminder time (within 1 minute window)
-            if (minutesUntil === event.reminderMinutes || (minutesUntil === event.reminderMinutes - 1 && timeDiff % 60000 > 30000)) {
-                showNotification(
-                    `🔔 ${event.title}`,
-                    `Starting in ${event.reminderMinutes} minutes at ${event.location || 'your group'}!`
-                );
+if ("Notification" in window) {
+    if (Notification.permission === "default") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                console.log("Notifications enabled");
             }
         });
-    } catch (e) {
-        console.error('Failed to check reminders:', e);
     }
+}
+
+function showNotification(event) {
+    if (Notification.permission === "granted") {
+        const eventDate = new Date(event.dateTime);
+        const timeStr = eventDate.toLocaleTimeString('en-US', { 
+            hour: '2-digit', 
+            minute: '2-digit',
+            hour12: true 
+        });
+        
+        const now = new Date();
+        const minutesUntil = Math.floor((eventDate - now) / 60000);
+        
+        new Notification(`🔔 ${event.title}`, {
+            body: `Starting in ${minutesUntil} minute${minutesUntil !== 1 ? 's' : ''} at ${timeStr}\n${event.location ? '📍 ' + event.location : ''}\nGroup: ${event.groupName || 'Unknown'}`,
+            requireInteraction: false,
+            tag: `event-${event.id}`,
+            vibrate: [200, 100, 200]
+        });
+    }
+}
+
+function checkReminders() {
+    if (Notification.permission !== "granted") return;
+    
+    const now = new Date();
+    
+    allEvents.forEach(event => {
+        const eventTime = new Date(event.dateTime);
+        const timeDiff = eventTime - now;
+        const minutesUntil = Math.floor(timeDiff / 60000);
+        
+        if (minutesUntil < 0) return;
+        
+        if (event.reminderMinutes) {
+            const notificationKey = `${event.id}-custom`;
+            
+            if (minutesUntil <= event.reminderMinutes && 
+                minutesUntil >= (event.reminderMinutes - 1) && 
+                !notifiedEvents.has(notificationKey)) {
+                
+                showNotification(event);
+                notifiedEvents.add(notificationKey);
+                console.log(`Custom reminder sent: ${event.title} in ${minutesUntil} minutes`);
+            }
+        } else {
+            const defaultReminderTimes = [30, 15, 5];
+            
+            defaultReminderTimes.forEach(reminderMinutes => {
+                const notificationKey = `${event.id}-${reminderMinutes}`;
+                
+                if (minutesUntil <= reminderMinutes && 
+                    minutesUntil >= (reminderMinutes - 1) && 
+                    !notifiedEvents.has(notificationKey)) {
+                    
+                    showNotification(event);
+                    notifiedEvents.add(notificationKey);
+                    console.log(`Default reminder sent: ${event.title} in ${minutesUntil} minutes`);
+                }
+            });
+        }
+        
+        if (minutesUntil < -60) {
+            notifiedEvents.delete(`${event.id}-custom`);
+            [30, 15, 5].forEach(reminderMinutes => {
+                notifiedEvents.delete(`${event.id}-${reminderMinutes}`);
+            });
+        }
+    });
 }
 
 setInterval(checkReminders, 60000);
+
+loadEvents();
 checkReminders();
+
+setInterval(loadEvents, 300000);
 </script>
 </body></html>

@@ -6,7 +6,7 @@
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com" rel="preconnect"/>
 <link crossorigin="" href="https://fonts.gstatic.com/" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
 <script>
       tailwind.config = {
@@ -70,7 +70,7 @@
 </main>
 </div>
 
-<div id="event-form-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+<div id="event-form-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
 <div class="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
 <h3 id="form-title" class="text-2xl font-bold mb-4">Create Event</h3>
 <form id="event-form" class="space-y-4">
@@ -120,55 +120,135 @@ if (!sessionStorage.getItem('jwt_token')) window.location.href = 'login.html';
 
 let editingEventId = null;
 const token = sessionStorage.getItem('jwt_token');
-const currentUser = JSON.parse(sessionStorage.getItem('current_user'));
+const currentUser = JSON.parse(sessionStorage.getItem('current_user')) || {};
 
 async function api(endpoint, method = 'GET', body = null) {
-    const res = await fetch(`http://localhost:8080/api${endpoint}`, {
+    const options = {
         method, 
         headers: { 
             'Content-Type': 'application/json', 
             'Authorization': `Bearer ${token}` 
-        },
-        body: body ? JSON.stringify(body) : null
-    });
-    if (!res.ok) throw new Error('API failed');
+        }
+    };
+    if (body && method !== 'GET') {
+        options.body = JSON.stringify(body);
+    }
+    const res = await fetch(`http://localhost:8080/api${endpoint}`, options);
+    if (!res.ok) throw new Error(`API failed: ${res.status}`);
     return res.json();
+}
+
+async function loadRSVPs(eventId, organizerId) {
+    try {
+        const rsvps = await api(`/events/${eventId}/rsvps`);
+        
+        const attending = rsvps.filter(r => r.status === 'ATTENDING').length;
+        const notAttending = rsvps.filter(r => r.status === 'NOT_ATTENDING').length;
+        const maybe = rsvps.filter(r => r.status === 'MAYBE').length;
+        
+        const rsvpDiv = document.getElementById(`rsvp-${eventId}`);
+        
+        if (rsvpDiv && organizerId === currentUser.id) {
+            rsvpDiv.innerHTML = `
+                <span class="text-green-600 font-medium">✓ ${attending} Going</span> • 
+                <span class="text-red-600 font-medium">✗ ${notAttending} Not Going</span> • 
+                <span class="text-yellow-600 font-medium">? ${maybe} Maybe</span>
+            `;
+        } else if (rsvpDiv) {
+            rsvpDiv.innerHTML = '';
+        }
+    } catch(e) {
+        console.error('Failed to load RSVPs:', e);
+    }
 }
 
 async function loadEvents() {
     try {
-        const events = await api('/events/user');
+        const events = await api(`/events/user?userId=${currentUser.id}`);
         const list = document.getElementById('events-list');
         list.innerHTML = events.length ? '' : '<div class="col-span-full text-center p-10"><p class="text-gray-500">No events yet. Create one!</p></div>';
         events.forEach(e => {
             const div = document.createElement('div');
-            div.className = 'event-card p-6 bg-white rounded-xl border shadow-sm';
+            div.className = 'event-card p-6 bg-white rounded-xl border shadow-sm hover:shadow-md transition-shadow';
             div.dataset.groupId = e.groupId;
-            const reminderText = e.reminderMinutes ? `<span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded ml-2">🔔 ${e.reminderMinutes} min reminder</span>` : '';
+            div.dataset.organizerId = e.organizerId; // Store organizer ID for polling
+            
+            const eventDate = new Date(e.dateTime);
+            const formattedDate = eventDate.toLocaleString('en-US', {
+                weekday: 'short',
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
             div.innerHTML = `
-                <div class="flex justify-between items-start">
+                <div class="flex justify-between items-start mb-4">
                     <div class="flex-1">
                         <div class="flex items-center gap-2 mb-2">
                             <h3 class="text-xl font-bold">${e.title}</h3>
-                            <span class="text-xs bg-primary px-2 py-1 rounded">${e.groupName}</span>
-                            ${reminderText}
+                            <span class="text-xs bg-primary px-2 py-1 rounded font-medium">${e.groupName || 'Unknown Group'}</span>
                         </div>
-                        <p class="text-gray-600 mb-2">${new Date(e.dateTime).toLocaleString()}</p>
+                        <p class="text-gray-600 mb-2">📅 ${formattedDate}</p>
                         ${e.location ? `<p class="text-sm text-gray-500 mb-2">📍 ${e.location}</p>` : ''}
                         <p class="text-gray-700 mt-3">${e.description}</p>
                     </div>
                     <div class="flex gap-2 ml-4">
-                        <button class="edit-btn px-3 py-1 bg-blue-500 text-white rounded text-sm" data-id="${e.id}">Edit</button>
-                        <button class="delete-btn px-3 py-1 bg-red-500 text-white rounded text-sm" data-id="${e.id}">Delete</button>
+                        <button class="edit-btn px-3 py-1 bg-blue-500 text-white rounded text-sm hover:bg-blue-600 transition-colors" data-id="${e.id}">Edit</button>
+                        <button class="delete-btn px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors" data-id="${e.id}">Delete</button>
                     </div>
                 </div>
+                <div class="border-t pt-4">
+                    <p class="text-sm font-bold text-gray-700 mb-2">Your Response:</p>
+                    <div class="flex gap-2 mb-3">
+                        <button class="rsvp-btn px-4 py-2 rounded text-sm font-medium bg-green-500 text-white hover:bg-green-600 transition-colors" 
+                                data-event-id="${e.id}" data-status="ATTENDING">
+                            ✓ Yes, I'm in!
+                        </button>
+                        <button class="rsvp-btn px-4 py-2 rounded text-sm font-medium bg-red-500 text-white hover:bg-red-600 transition-colors" 
+                                data-event-id="${e.id}" data-status="NOT_ATTENDING">
+                            ✗ Sorry, maybe next time
+                        </button>
+                        <button class="rsvp-btn px-4 py-2 rounded text-sm font-medium bg-yellow-500 text-white hover:bg-yellow-600 transition-colors" 
+                                data-event-id="${e.id}" data-status="MAYBE">
+                            ? Let me check and tell
+                        </button>
+                    </div>
+                    <div id="rsvp-${e.id}" class="text-sm text-gray-600"></div>
+                </div>
             `;
+            
             div.querySelector('.edit-btn').onclick = () => editEvent(e);
             div.querySelector('.delete-btn').onclick = () => deleteEvent(e.id);
+            
+            div.querySelectorAll('.rsvp-btn').forEach(btn => {
+                btn.onclick = async () => {
+                    try {
+                        await api(`/events/${btn.dataset.eventId}/rsvp`, 'POST', { 
+                            status: btn.dataset.status,
+                            userId: currentUser.id.toString()
+                        });
+                        
+                        btn.classList.add('ring-2', 'ring-white', 'scale-95');
+                        setTimeout(() => {
+                            btn.classList.remove('ring-2', 'ring-white', 'scale-95');
+                        }, 300);
+                        
+                        loadRSVPs(btn.dataset.eventId, e.organizerId);
+                    } catch(err) {
+                        console.error('RSVP error:', err);
+                        alert('Failed to update RSVP. Please try again.');
+                    }
+                };
+            });
+            
             list.appendChild(div);
+            loadRSVPs(e.id, e.organizerId);
         });
     } catch (e) {
-        console.error('Failed to load events:', e);
+        console.error('Error loading events:', e);
+        document.getElementById('events-list').innerHTML = '<div class="col-span-full text-center p-10"><p class="text-red-500">Failed to load events</p></div>';
     }
 }
 
@@ -185,8 +265,13 @@ async function loadGroups() {
             select.innerHTML += `<option value="${g.id}">${g.name}</option>`;
             filter.innerHTML += `<option value="${g.id}">${g.name}</option>`;
         });
+        
+        if (groups.length === 0) {
+            select.innerHTML = '<option value="">No groups available</option>';
+            select.disabled = true;
+        }
     } catch (e) {
-        console.error('Failed to load groups:', e);
+        console.error('Error loading groups:', e);
     }
 }
 
@@ -203,15 +288,24 @@ document.getElementById('cancel-event-btn').onclick = () => {
 
 document.getElementById('event-form').onsubmit = async (e) => {
     e.preventDefault();
-    const reminderValue = document.getElementById('event-reminder').value;
+    
+    const datetimeValue = document.getElementById('event-datetime').value;
+    const localDateTime = new Date(datetimeValue);
+    const isoDateTime = localDateTime.toISOString();
+    
     const data = {
-        title: document.getElementById('event-title').value,
-        description: document.getElementById('event-description').value,
-        dateTime: document.getElementById('event-datetime').value,
-        location: document.getElementById('event-location').value || '',
+        title: document.getElementById('event-title').value.trim(),
+        description: document.getElementById('event-description').value.trim(),
+        dateTime: isoDateTime,
+        location: document.getElementById('event-location').value.trim(),
         groupId: parseInt(document.getElementById('event-group-select').value),
-        reminderMinutes: reminderValue ? parseInt(reminderValue) : null
+        organizerId: currentUser.id
     };
+    
+    if (!data.title || !data.description || !data.groupId) {
+        alert('Please fill in all required fields');
+        return;
+    }
     
     try {
         if (editingEventId) {
@@ -223,7 +317,7 @@ document.getElementById('event-form').onsubmit = async (e) => {
         loadEvents();
     } catch (err) {
         console.error('Error saving event:', err);
-        alert('Failed to save event');
+        alert('Failed to save event. Please try again.');
     }
 };
 
@@ -232,19 +326,28 @@ function editEvent(event) {
     document.getElementById('form-title').textContent = 'Edit Event';
     document.getElementById('event-title').value = event.title;
     document.getElementById('event-description').value = event.description;
-    document.getElementById('event-datetime').value = event.dateTime.slice(0, 16);
+    
+    const eventDate = new Date(event.dateTime);
+    const year = eventDate.getFullYear();
+    const month = String(eventDate.getMonth() + 1).padStart(2, '0');
+    const day = String(eventDate.getDate()).padStart(2, '0');
+    const hours = String(eventDate.getHours()).padStart(2, '0');
+    const minutes = String(eventDate.getMinutes()).padStart(2, '0');
+    const formattedDateTime = `${year}-${month}-${day}T${hours}:${minutes}`;
+    
+    document.getElementById('event-datetime').value = formattedDateTime;
     document.getElementById('event-location').value = event.location || '';
     document.getElementById('event-group-select').value = event.groupId;
-    document.getElementById('event-reminder').value = event.reminderMinutes || '';
     document.getElementById('event-form-modal').classList.remove('hidden');
 }
 
 async function deleteEvent(id) {
-    if (!confirm('Delete this event?')) return;
+    if (!confirm('Are you sure you want to delete this event?')) return;
     try {
         await api(`/events/${id}`, 'DELETE');
         loadEvents();
     } catch (e) {
+        console.error('Error deleting event:', e);
         alert('Failed to delete event');
     }
 }
@@ -258,5 +361,20 @@ document.getElementById('group-filter').onchange = (e) => {
 
 loadGroups();
 loadEvents();
+
+
+setInterval(() => {
+    const eventCards = document.querySelectorAll('.event-card');
+    eventCards.forEach(card => {
+        const rsvpDiv = card.querySelector('[id^="rsvp-"]');
+        if (rsvpDiv) {
+            const eventId = rsvpDiv.id.replace('rsvp-', '');
+            const organizerId = parseInt(card.dataset.organizerId);
+            if (organizerId === currentUser.id) {
+                loadRSVPs(eventId, organizerId);
+            }
+        }
+    });
+}, 1000); 
 </script>
 </body></html>

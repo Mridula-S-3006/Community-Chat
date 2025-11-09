@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.communitychat.model.entity.Group;
 import com.communitychat.model.entity.Message;
+import com.communitychat.repository.UserRepository;
 import com.communitychat.service.GroupService;
 import com.communitychat.service.MessageService;
 
@@ -29,11 +30,35 @@ public class GroupController {
 
     private final GroupService groupService;
     private final MessageService messageService;
+    
+    @Autowired
+    private UserRepository userRepository;
 
     @Autowired
     public GroupController(GroupService groupService, MessageService messageService) {
         this.groupService = groupService;
         this.messageService = messageService;
+    }
+
+    @GetMapping
+    public ResponseEntity<?> getAllGroups() {
+        try {
+            Long userId = userRepository.findAll().get(0).getId();
+            List<Group> groups = groupService.getUserGroups(userId);
+            
+            List<Map<String, Object>> groupList = groups.stream().map(g -> {
+                Map<String, Object> map = new HashMap<>();
+                map.put("id", g.getId());
+                map.put("name", g.getName());
+                map.put("memberCount", g.getMembers().size());
+                return map;
+            }).collect(Collectors.toList());
+            
+            return ResponseEntity.ok(groupList);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
+        }
     }
 
     @PostMapping
@@ -66,7 +91,6 @@ public class GroupController {
         try {
             List<Group> groups = groupService.getUserGroups(userId);
             
-            // Return simplified group info to avoid circular references
             List<Map<String, Object>> groupList = groups.stream().map(g -> {
                 Map<String, Object> map = new HashMap<>();
                 map.put("id", g.getId());
@@ -91,7 +115,7 @@ public class GroupController {
             response.put("name", group.getName());
             response.put("ownerId", group.getOwner().getId());
             response.put("memberCount", group.getMembers().size());
-            response.put("events", List.of()); // TODO: Add events if needed
+            response.put("events", List.of());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
@@ -104,7 +128,6 @@ public class GroupController {
         try {
             List<Message> messages = messageService.getGroupMessages(id);
             
-            // Return simplified message data
             List<Map<String, Object>> messageList = messages.stream().map(m -> {
                 Map<String, Object> map = new HashMap<>();
                 map.put("id", m.getId());

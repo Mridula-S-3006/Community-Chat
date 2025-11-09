@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.communitychat.model.entity.Event;
@@ -54,13 +55,20 @@ public class EventController {
     @PostMapping
     public ResponseEntity<?> createEvent(@RequestBody Map<String, Object> payload) {
         try {
-            // Get current user from session (for now using first user as demo)
-            Long organizerId = userRepository.findAll().get(0).getId();
+            // FIXED: Get organizerId from payload instead of hardcoded
+            Long organizerId = Long.valueOf(payload.get("organizerId").toString());
             
             Long groupId = Long.valueOf(payload.get("groupId").toString());
             String title = payload.get("title").toString();
             String description = payload.get("description").toString();
-            LocalDateTime dateTime = LocalDateTime.parse(payload.get("dateTime").toString());
+            
+            // FIX: Handle timezone in datetime string
+            String dateTimeStr = payload.get("dateTime").toString();
+            if (dateTimeStr.contains("Z")) {
+                dateTimeStr = dateTimeStr.substring(0, dateTimeStr.indexOf("."));
+            }
+            LocalDateTime dateTime = LocalDateTime.parse(dateTimeStr);
+            
             String location = payload.getOrDefault("location", "").toString();
             Integer reminderMinutes = payload.containsKey("reminderMinutes") && !payload.get("reminderMinutes").toString().isEmpty() ? 
                 Integer.valueOf(payload.get("reminderMinutes").toString()) : null;
@@ -77,6 +85,7 @@ public class EventController {
             response.put("location", event.getLocation());
             response.put("groupId", event.getGroup().getId());
             response.put("groupName", event.getGroup().getName());
+            response.put("organizerId", event.getOrganizer().getId());
             response.put("reminderMinutes", event.getReminderMinutes());
             
             return ResponseEntity.ok(response);
@@ -87,23 +96,21 @@ public class EventController {
     }
 
     @GetMapping("/user")
-    public ResponseEntity<?> getUserEvents() {
+    public ResponseEntity<?> getUserEvents(@RequestParam(required = false) Long userId) {
         try {
-            // Get current user from session (demo: use first user)
-            Long userId = userRepository.findAll().get(0).getId();
+            if (userId == null) {
+                return ResponseEntity.badRequest().body(Map.of("error", "userId is required"));
+            }
             
-            // Get all groups user is member of
             List<GroupMember> memberships = groupMemberRepository.findByUser(
                 userRepository.findById(userId).get()
             );
             
-            // Get all events from those groups
             List<Event> allEvents = memberships.stream()
                 .flatMap(gm -> eventRepository.findByGroup(gm.getGroup()).stream())
                 .distinct()
                 .collect(Collectors.toList());
             
-            // Convert to simple response format
             List<Map<String, Object>> events = allEvents.stream().map(e -> {
                 Map<String, Object> map = new HashMap<>();
                 map.put("id", e.getId());
@@ -133,7 +140,14 @@ public class EventController {
             
             event.setTitle(payload.get("title").toString());
             event.setDescription(payload.get("description").toString());
-            event.setDateTime(LocalDateTime.parse(payload.get("dateTime").toString()));
+            
+            // FIX: Handle timezone in datetime string
+            String dateTimeStr = payload.get("dateTime").toString();
+            if (dateTimeStr.contains("Z")) {
+                dateTimeStr = dateTimeStr.substring(0, dateTimeStr.indexOf("."));
+            }
+            event.setDateTime(LocalDateTime.parse(dateTimeStr));
+            
             event.setLocation(payload.getOrDefault("location", "").toString());
             
             if (payload.containsKey("reminderMinutes") && !payload.get("reminderMinutes").toString().isEmpty()) {
@@ -158,6 +172,7 @@ public class EventController {
             response.put("location", updated.getLocation());
             response.put("groupId", updated.getGroup().getId());
             response.put("groupName", updated.getGroup().getName());
+            response.put("organizerId", updated.getOrganizer().getId());
             response.put("reminderMinutes", updated.getReminderMinutes());
             
             return ResponseEntity.ok(response);
@@ -180,7 +195,8 @@ public class EventController {
     @PostMapping("/{eventId}/rsvp")
     public ResponseEntity<?> rsvpEvent(@PathVariable Long eventId, @RequestBody Map<String, String> payload) {
         try {
-            Long userId = userRepository.findAll().get(0).getId();
+            // FIXED: Get userId from payload instead of hardcoded
+            Long userId = Long.valueOf(payload.get("userId"));
             String status = payload.get("status");
             
             EventResponse er = eventService.respondToEvent(eventId, userId, status);
@@ -188,9 +204,11 @@ public class EventController {
             Map<String, Object> response = new HashMap<>();
             response.put("id", er.getId());
             response.put("status", er.getResponse());
+            response.put("userId", er.getUser().getId());
             
             return ResponseEntity.ok(response);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
@@ -210,6 +228,7 @@ public class EventController {
             
             return ResponseEntity.ok(rsvps);
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
         }
     }
